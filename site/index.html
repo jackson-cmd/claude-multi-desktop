@@ -149,6 +149,27 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc   # then open a ne
 cd claude-multi-desktop
 ./claude-multi-desktop add Work</code></pre>
 
+  <h2 id="sign-in-and-updates">Sign-in and updates</h2>
+  <h3>Signing in</h3>
+  <p>Each account signs in on its own, once. Open its launcher (or run <code>claude-multi-desktop open NAME</code>), click <strong>Log in</strong> in that window and finish in the browser. That window stays signed in from then on, and your other accounts are not touched. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.</p>
+  <h3>Updating Claude Desktop</h3>
+  <p>Every account runs the same Claude.app, so one update covers all of them. Before you update, quit Claude in <strong>every</strong> account: while another account is still open, the update may not install, or the open windows may misbehave.</p>
+  <ol>
+    <li>Quit every Claude window (⌘Q in each one, or Claude → Quit Claude).</li>
+    <li>Open Claude the normal way, or from your <strong>Claude Main</strong> launcher, and install the update when Claude offers it (or choose Claude → Check for Updates).</li>
+    <li>Open your other accounts again from their launchers.</li>
+  </ol>
+  <p>You never need to remake launchers after a Claude update.</p>
+  <h3>Updating claude-multi-desktop</h3>
+  <table>
+    <tr><th>Installed with</th><th>Update with</th></tr>
+    <tr><td>Homebrew</td><td><code>brew upgrade claude-multi-desktop</code></td></tr>
+    <tr><td>Mac installer or disk image</td><td>Download the newer <code>.pkg</code> or <code>.dmg</code> from the <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">latest release</a> and install it the same way</td></tr>
+    <tr><td>npm</td><td><code>npm install -g claude-multi-desktop@latest</code>, or <code>npx claude-multi-desktop@latest</code></td></tr>
+    <tr><td>Claude Code plugin</td><td><code>/plugin marketplace update multi-desktop</code></td></tr>
+  </table>
+  <p>Launchers you already made keep working after an update, because they only open Claude.app.</p>
+
   <h2 id="icons-and-names">Icons and names</h2>
   <p>By default a launcher gets a coloured square with the first letter of its name. You can pick another look when you add it, or change it later:</p>
 <pre><code>claude-multi-desktop add Work --icon claude                  # your Claude icon with a coloured letter badge

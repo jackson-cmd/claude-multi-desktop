@@ -140,7 +140,36 @@ cd claude-multi-desktop
 4. **Add a launcher for your first account:** `claude-multi-desktop add Main --default`. While another account is open, clicking the normal Claude icon only brings that window forward. **Claude Main** always opens your first account.
 5. **Add as many as you need:** `add Personal`, `add "Client A"`, and so on. Pick a colour with `--color 2E9D6A` or another look with `--icon` (see [Icons and names](#icons-and-names)).
 
-> **Signing in.** Sign-in happens once per account. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.
+> **Signing in.** Each account signs in once, in its own window. See [Sign-in and updates](#sign-in-and-updates), which also says how to update Claude Desktop when several accounts are set up.
+
+## Sign-in and updates
+
+### Signing in
+
+Each account signs in on its own, once. Open its launcher (or run `claude-multi-desktop open NAME`), click **Log in** in that window and finish in the browser. That window stays signed in from then on, and your other accounts are not touched. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.
+
+### Updating Claude Desktop
+
+Every account runs the same Claude.app, so one update covers all of them. Before you update, quit Claude in **every** account: while another account is still open, the update may not install, or the open windows may misbehave.
+
+1. Quit every Claude window (⌘Q in each one, or Claude → Quit Claude).
+2. Open Claude the normal way, or from your **Claude Main** launcher, and install the update when Claude offers it (or choose Claude → Check for Updates).
+3. Open your other accounts again from their launchers.
+
+You never need to remake launchers after a Claude update. If Claude restarts itself after an update and a window comes back on the wrong account, quit it and open it again from its launcher.
+
+### Updating claude-multi-desktop
+
+| Installed with | Update with |
+|---|---|
+| Homebrew | `brew upgrade claude-multi-desktop` |
+| Mac installer or disk image | Download the newer `.pkg` or `.dmg` from the [latest release](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest) and install it the same way; it replaces the old copy |
+| npm | `npm install -g claude-multi-desktop@latest`, or run `npx claude-multi-desktop@latest` |
+| curl | Run the same curl line again |
+| git clone | `git pull` in the folder |
+| Claude Code plugin | `/plugin marketplace update multi-desktop` |
+
+Launchers you already made keep working after an update, because they only open Claude.app; there is nothing to redo.
 
 ## Icons and names
 
@@ -219,7 +248,7 @@ exec open -n -a "/Applications/Claude.app" --args --user-data-dir="$HOME/Library
 ## Good to know
 
 - **Dock icons.** Once a window is open, the Dock shows the normal Claude icon and name for it, whatever icon the launcher has, because Claude.app decides that and this tool never modifies Claude.app. Start accounts from the launchers, which have their own icons.
-- **After an update.** If Claude restarts itself after an update and a window comes back on the wrong account, quit it and open it again from its launcher.
+- **Updating Claude.** Quit Claude in every account before you update it; see [Updating Claude Desktop](#updating-claude-desktop).
 - **Shared means shared.** Memory or `CLAUDE.md` text written in one account is visible to the others. If work data must stay inside the work account, use a tool that isolates Claude Code too (see below).
 - **macOS only.** Windows and Linux users, see the tools below.
 
