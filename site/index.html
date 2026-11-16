@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="style.css">
 <meta property="og:type" content="website">
 <meta property="og:title" content="claude-multi-desktop: several Claude Desktop accounts on one Mac">
-<meta property="og:description" content="Separate sign-ins, one shared Claude Code setup, and sessions that message each other across accounts. One bash script, nothing to install.">
+<meta property="og:description" content="Separate sign-ins, one shared Claude Code setup, and sessions that message each other across accounts. One bash script, no dependencies.">
 <meta property="og:url" content="https://jackson-cmd.github.io/claude-multi-desktop/">
 <meta property="og:image" content="https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png">
 <meta property="og:image:width" content="1280">
@@ -25,8 +25,8 @@
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS",
   "url": "https://jackson-cmd.github.io/claude-multi-desktop/",
-  "downloadUrl": "https://github.com/jackson-cmd/claude-multi-desktop",
-  "softwareVersion": "0.1.0",
+  "downloadUrl": "https://github.com/jackson-cmd/claude-multi-desktop/releases/latest",
+  "softwareVersion": "0.1.1",
   "license": "https://opensource.org/licenses/MIT",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -48,7 +48,11 @@
     {"@type": "Question", "name": "Can Claude Code sessions in different Claude accounts talk to each other?",
      "acceptedAnswer": {"@type": "Answer", "text": "Yes. Ask a session to list the other sessions on this Mac and to send one of them a message; it uses Claude Code's ListAgents and SendMessage tools."}},
     {"@type": "Question", "name": "Does this modify, copy or re-sign Claude.app?",
-     "acceptedAnswer": {"@type": "Answer", "text": "No. Launchers only open the Claude.app you already have with Electron's public --user-data-dir flag, so Claude's own updates keep working for every account."}}
+     "acceptedAnswer": {"@type": "Answer", "text": "No. Launchers only open the Claude.app you already have with Electron's public --user-data-dir flag, so Claude's own updates keep working for every account."}},
+    {"@type": "Question", "name": "Do I need Terminal to set up a second Claude account?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. The disk image has a double-click app called Claude Multi Desktop that asks for an account name, an icon style and a colour, makes the launcher and opens it. The command line does the same and can be scripted."}},
+    {"@type": "Question", "name": "Why does the Dock show the normal Claude icon for an open window?",
+     "acceptedAnswer": {"@type": "Answer", "text": "The custom icon belongs to the launcher. Once a window is open, the Dock icon and name come from Claude.app, and claude-multi-desktop never modifies Claude.app, so they stay as Claude ships them."}}
   ]
 }
 </script>
@@ -57,15 +61,17 @@
 <header>
   <nav>
     <a href="./"><strong>claude-multi-desktop</strong></a>
+    <a href="#install">Install</a>
     <a href="guides/two-claude-accounts-on-mac.html">Two accounts on a Mac</a>
     <a href="guides/claude-code-sessions-across-accounts.html">Sessions across accounts</a>
     <a href="https://github.com/jackson-cmd/claude-multi-desktop">GitHub</a>
   </nav>
   <h1>Run several Claude Desktop accounts at once on one Mac</h1>
   <p class="lead">Each window has its own sign-in. All of them share one Claude Code setup, so a session in one account can send work to a session in another.</p>
-  <p class="sub">One bash script · nothing to install · never modifies Claude.app · free and open source (MIT)</p>
+  <p class="sub">One bash script · no dependencies · never modifies Claude.app · free and open source (MIT)</p>
   <a class="button" href="https://github.com/jackson-cmd/claude-multi-desktop">Get it on GitHub</a>
   <a class="button" href="#quick-start">Quick start</a>
+  <a class="button" href="#install">All install methods</a>
 </header>
 <main>
   <img class="diagram" src="assets/how-it-works.svg" width="900" height="430" alt="One Claude.app opens one window per account. Each window has its own sign-in and chats, all windows read one shared ~/.claude, and Claude Code sessions in different accounts can message each other.">
@@ -75,7 +81,7 @@
   <ol class="points">
     <li><strong>Separate accounts, one setup.</strong> Each window signs in to its own account and keeps its own chats, projects and plan. Claude Code in every window reads the same <code>~/.claude</code>: skills, <code>CLAUDE.md</code>, memory, MCP servers, hooks and settings. If you write a skill once, every account has it.</li>
     <li><strong>Sessions talk across accounts.</strong> A Claude Code session in your Work window can see the sessions in your Personal window and send one a message with Claude Code's built-in <code>ListAgents</code> and <code>SendMessage</code> tools. <a href="guides/claude-code-sessions-across-accounts.html">See how</a>.</li>
-    <li><strong>Nothing to install, nothing patched.</strong> Each launcher opens the Claude.app you already have with Electron's public <code>--user-data-dir</code> flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. Claude's updates reach every account.</li>
+    <li><strong>No dependencies, nothing patched.</strong> Each launcher opens the Claude.app you already have with Electron's public <code>--user-data-dir</code> flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. Claude's updates reach every account.</li>
   </ol>
 
   <h2 id="quick-start">Quick start</h2>
@@ -84,8 +90,66 @@
 claude-multi-desktop add Work            # launcher "Claude Work" with its own sign-in
 claude-multi-desktop open Work           # second window: sign in with your other account
 claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
-  <p>No Homebrew? <code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git</code> and run <code>./claude-multi-desktop</code> from the folder.</p>
   <p>The launchers go to <code>~/Applications</code>, so Spotlight, Launchpad and the Dock find them. Drag them to the Dock and click whichever account you want; they can all stay open side by side.</p>
+  <p>No Homebrew, or would you rather not use Terminal? <a href="#install">Install</a> lists a Mac installer, a disk image with a double-click app, npm, PyPI and a Claude Code plugin.</p>
+
+  <h2 id="install">Install</h2>
+  <p>Homebrew is the shortest way. The others are for people without Homebrew, or who would rather not use Terminal.</p>
+
+  <h3>Homebrew</h3>
+<pre><code>brew install jackson-cmd/tap/claude-multi-desktop</code></pre>
+
+  <h3>Mac installer (.pkg)</h3>
+  <p>Download <code>claude-multi-desktop-0.1.1.pkg</code> from the <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">latest release</a> and open it. It installs the <code>claude-multi-desktop</code> command to <code>/usr/local/bin</code> and the double-click app <strong>Claude Multi Desktop</strong> to <code>/Applications</code>.</p>
+  <p>The installer is not signed with an Apple Developer ID, so macOS blocks the first open:</p>
+  <ul>
+    <li><strong>macOS 15 and later:</strong> open System Settings → Privacy &amp; Security and click <strong>Open Anyway</strong>.</li>
+    <li><strong>macOS 14 and earlier:</strong> right-click the file and choose <strong>Open</strong>.</li>
+  </ul>
+  <p>To uninstall it:</p>
+<pre><code>sudo rm /usr/local/bin/claude-multi-desktop
+sudo rm -rf "/Applications/Claude Multi Desktop.app"
+sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop</code></pre>
+
+  <h3>Disk image (.dmg)</h3>
+  <p>Download <code>claude-multi-desktop-0.1.1.dmg</code> from the same <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">release page</a>, drag <strong>Claude Multi Desktop</strong> to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.</p>
+  <p>The app is not signed with an Apple Developer ID either, so the first open is blocked in the same way: on macOS 15 and later use System Settings → Privacy &amp; Security → <strong>Open Anyway</strong>; on macOS 14 and earlier right-click the app and choose <strong>Open</strong>.</p>
+
+  <h3>npm</h3>
+<pre><code>npx claude-multi-desktop add Work     # run it without installing
+npm install -g claude-multi-desktop   # or install the command</code></pre>
+
+  <h3>PyPI</h3>
+<pre><code>pipx install claude-multi-desktop     # install the command
+uvx claude-multi-desktop add Work     # or run it without installing</code></pre>
+
+  <h3>Claude Code plugin</h3>
+<pre><code>/plugin marketplace add jackson-cmd/claude-multi-desktop
+/plugin install account-handoff@multi-desktop</code></pre>
+  <p>The plugin adds one skill, <code>handoff</code> (also <code>/account-handoff:handoff</code>). It hands a task to a Claude Code session in another account using <code>ListAgents</code>, <code>SendMessage</code> and <code>claude-multi-desktop peers</code>, and relays the reply. It refuses to move work to another account because an account has hit a usage limit. The plugin does not install the <code>claude-multi-desktop</code> command itself; use one of the methods above for that. See <a href="guides/claude-code-sessions-across-accounts.html">Sessions across accounts</a>.</p>
+
+  <h3>curl or git clone</h3>
+  <details>
+    <summary>Install with curl, without Homebrew</summary>
+<pre><code>mkdir -p ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/jackson-cmd/claude-multi-desktop/main/claude-multi-desktop -o ~/.local/bin/claude-multi-desktop
+chmod +x ~/.local/bin/claude-multi-desktop
+echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc   # then open a new terminal</code></pre>
+  </details>
+  <p>Or clone the repository and run the script from the folder:</p>
+<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
+cd claude-multi-desktop
+./claude-multi-desktop add Work</code></pre>
+
+  <h2 id="icons-and-names">Icons and names</h2>
+  <p>By default a launcher gets a coloured square with the first letter of its name. You can pick another look when you add it, or change it later:</p>
+<pre><code>claude-multi-desktop add Work --icon claude                  # your Claude icon with a coloured letter badge
+claude-multi-desktop add Home --icon ~/Pictures/home.png     # any PNG, JPEG, HEIC or ICNS picture
+claude-multi-desktop icon Work --icon claude --color 2E9D6A  # change an existing launcher's icon
+claude-multi-desktop rename Work Office                      # rename a launcher; sign-in and chats stay
+claude-multi-desktop list --names                            # print the launcher names, one per line</code></pre>
+  <p><code>--icon claude</code> draws your own Claude icon with a coloured letter badge, on your Mac, from the Claude.app you have installed. Nothing from Anthropic is shipped with this tool. <code>rename</code> keeps the account's sign-in and chats; the account's folder (for example <code>Claude-Work</code>) is not renamed.</p>
+  <p><strong>One limit:</strong> the custom icon belongs to the launcher, so you see it in Finder, Spotlight and Launchpad. Once a window is open, the Dock shows the normal Claude icon and name for it, because Claude.app decides that and this tool never modifies Claude.app.</p>
 
   <h2>What is shared and what is not</h2>
   <table>
@@ -102,7 +166,13 @@ claude-multi-desktop add Main --default  # launcher for the account you already 
     <tr><th>Command</th><th>What it does</th></tr>
     <tr><td><code>add NAME</code></td><td>Make the launcher <em>Claude NAME</em> with its own sign-in</td></tr>
     <tr><td><code>add NAME --default</code></td><td>Make a launcher for the account you already use</td></tr>
+    <tr><td><code>add NAME --color HEX</code></td><td>Choose the icon colour, e.g. <code>--color 7A5AE0</code></td></tr>
+    <tr><td><code>add NAME --icon claude</code></td><td>Use your own Claude icon with a coloured letter badge, drawn on your Mac</td></tr>
+    <tr><td><code>add NAME --icon /path/to/picture</code></td><td>Use any PNG, JPEG, HEIC or ICNS picture as the icon</td></tr>
+    <tr><td><code>icon NAME --icon … --color HEX</code></td><td>Change the icon or colour of an existing launcher</td></tr>
+    <tr><td><code>rename NAME NEW</code></td><td>Rename a launcher and keep its sign-in and chats (the account folder keeps its name)</td></tr>
     <tr><td><code>list</code></td><td>Show launchers and which accounts are open</td></tr>
+    <tr><td><code>list --names</code></td><td>Print the launcher names only, one per line</td></tr>
     <tr><td><code>open NAME</code></td><td>Open that account's window</td></tr>
     <tr><td><code>peers</code></td><td>Show Claude Code sessions running in every account</td></tr>
     <tr><td><code>remove NAME [--delete-data]</code></td><td>Delete a launcher, and optionally that account's folder</td></tr>
@@ -117,6 +187,10 @@ claude-multi-desktop add Main --default  # launcher for the account you already 
   <p>Yes. Every account reads the same <code>~/.claude</code>. If work data must stay inside a work account, use a tool that isolates Claude Code as well, such as <a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile</a>.</p>
   <h3>Can Claude Code sessions in different accounts talk to each other?</h3>
   <p>Yes. Ask a session to list the other sessions on this Mac and to message one of them. <a href="guides/claude-code-sessions-across-accounts.html">Read the guide</a>.</p>
+  <h3>Do I need Terminal?</h3>
+  <p>No. The <a href="#install">disk image</a> has a double-click app that asks for a name, an icon style and a colour, makes the launcher and opens it. The command line does the same and also lets you script it.</p>
+  <h3>Why does the Dock show the normal Claude icon for an open window?</h3>
+  <p>The custom icon belongs to the launcher. Once a window is open, the Dock icon and name come from Claude.app, and this tool never modifies Claude.app, so they stay as Claude ships them.</p>
   <h3>Does this modify, copy or re-sign Claude.app?</h3>
   <p>No. Launchers only open the Claude.app you already have, with a public Electron flag.</p>
   <h2 id="disclaimer">Disclaimer</h2>
