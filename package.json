@@ -1,6 +1,6 @@
 {
   "name": "claude-multi-desktop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Run multiple Claude Desktop accounts at once on a Mac, sharing one Claude Code setup",
   "keywords": [
     "claude",

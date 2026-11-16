@@ -45,7 +45,7 @@ claude-multi-desktop add Main --default  # a launcher for the account you alread
 
 That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
 
-No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm and a Claude Code plugin.
+No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app and a Claude Code plugin.
 
 ## Install
 
@@ -59,12 +59,9 @@ brew install jackson-cmd/tap/claude-multi-desktop
 
 ### Mac installer (.pkg)
 
-Download `claude-multi-desktop-0.1.1.pkg` from the [latest release](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest) and open it. It installs the `claude-multi-desktop` command to `/usr/local/bin` and the double-click app **Claude Multi Desktop** to `/Applications`.
+Download the `.pkg` file from the [latest release](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest) and open it. It installs the `claude-multi-desktop` command to `/usr/local/bin` and the double-click app **Claude Multi Desktop** to `/Applications`.
 
-The installer is not signed with an Apple Developer ID, so macOS blocks the first open:
-
-- **macOS 15 and later:** open System Settings → Privacy & Security and click **Open Anyway**.
-- **macOS 14 and earlier:** right-click the file and choose **Open**.
+The installer is not signed with an Apple Developer ID, so macOS blocks it the first time you open it: see [If macOS blocks the app or installer](#if-macos-blocks-the-app-or-installer).
 
 To uninstall it:
 
@@ -76,16 +73,26 @@ sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop
 
 ### Disk image (.dmg)
 
-Download `claude-multi-desktop-0.1.1.dmg` from the same [release page](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest), drag **Claude Multi Desktop** to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.
+Download the `.dmg` file from the same [release page](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest), drag **Claude Multi Desktop** to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.
 
-The app is not signed with an Apple Developer ID either, so the first open is blocked in the same way: on macOS 15 and later use System Settings → Privacy & Security → **Open Anyway**; on macOS 14 and earlier right-click the app and choose **Open**.
+The app is not signed with an Apple Developer ID either: see [If macOS blocks the app or installer](#if-macos-blocks-the-app-or-installer). The disk image carries the same steps as a text file next to the app.
 
-### npm
+### If macOS blocks the app or installer
 
-```bash
-npx claude-multi-desktop add Work     # run it without installing
-npm install -g claude-multi-desktop   # or install the command
-```
+If macOS says *"Apple could not verify 'Claude Multi Desktop' is free of malware"*: the app and the installer are not signed with an Apple Developer ID, so macOS blocks them the first time you open them. The code is open source, and you only need to allow it once.
+
+**macOS 15 (Sequoia) and later**
+
+1. Double-click the app (or the `.pkg`) once. When macOS blocks it, click **Done**.
+2. Open **System Settings → Privacy & Security** and scroll down to the **Security** section. You will see *"'Claude Multi Desktop' was blocked to protect your Mac."* (for the installer, its file name). Click **Open Anyway**.
+3. Enter your Mac login password (or use Touch ID). If macOS asks once more, click **Open Anyway** again. From then on it opens normally.
+
+**macOS 14 (Sonoma) and earlier**
+
+1. Right-click (or Control-click) the app (or the `.pkg`) and choose **Open**.
+2. Click **Open** in the dialog. You only do this once.
+
+Want no warning at all? Install with Homebrew instead: `brew install jackson-cmd/tap/claude-multi-desktop`.
 
 ### Claude Code plugin
 

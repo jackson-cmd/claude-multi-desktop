@@ -67,6 +67,7 @@ productbuild --quiet --distribution "$W/distribution.xml" --resources "$W/res" -
 
 # 3. The disk image: drag the app to Applications
 ln -s /Applications "$W/stage/Applications"
+cp "packaging/dmg/If macOS blocks the app.txt" "$W/stage/"
 hdiutil create -quiet -volname "claude-multi-desktop $VERSION" -srcfolder "$W/stage" -fs HFS+ -format UDZO -ov \
   "$OUT/claude-multi-desktop-$VERSION.dmg"
 

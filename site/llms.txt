@@ -4,12 +4,11 @@
 
 ## Install
 
-Version 0.1.1. Every method needs macOS and Claude Desktop in /Applications.
+Version 0.1.2. Every method needs macOS and Claude Desktop in /Applications.
 
 - Homebrew: `brew install jackson-cmd/tap/claude-multi-desktop`
-- Mac installer: `claude-multi-desktop-0.1.1.pkg` from https://github.com/jackson-cmd/claude-multi-desktop/releases/latest. It installs the command to /usr/local/bin and the double-click app "Claude Multi Desktop" to /Applications. It is not signed with an Apple Developer ID, so macOS blocks the first open (macOS 15 and later: System Settings > Privacy & Security > Open Anyway; macOS 14 and earlier: right-click the file > Open).
-- Disk image: `claude-multi-desktop-0.1.1.dmg` from the same release page. Drag "Claude Multi Desktop" to Applications and double-click it; it asks for an account name, an icon style and a colour, makes the launcher and opens it. No Terminal needed. Same Gatekeeper note as the installer.
-- npm: `npx claude-multi-desktop add Work` or `npm install -g claude-multi-desktop`
+- Mac installer: the .pkg file from https://github.com/jackson-cmd/claude-multi-desktop/releases/latest. It installs the command to /usr/local/bin and the double-click app "Claude Multi Desktop" to /Applications. It is not signed with an Apple Developer ID, so macOS blocks the first open (macOS 15 and later: double-click once and click Done, then System Settings > Privacy & Security > Security > Open Anyway and enter the login password; macOS 14 and earlier: right-click the file > Open). Homebrew installs give no warning.
+- Disk image: the .dmg file from the same release page. Drag "Claude Multi Desktop" to Applications and double-click it; it asks for an account name, an icon style and a colour, makes the launcher and opens it. No Terminal needed. Same Gatekeeper note as the installer; the steps are also in a text file next to the app.
 - Claude Code plugin: `/plugin marketplace add jackson-cmd/claude-multi-desktop`, then `/plugin install account-handoff@multi-desktop`. Its skill `handoff` hands a task to a Claude Code session in another account with ListAgents, SendMessage and `claude-multi-desktop peers`, and refuses to move work because an account hit a usage limit. It does not install the command itself.
 - curl or git clone: see the README at https://github.com/jackson-cmd/claude-multi-desktop
 

@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.1.2 (2026-11-15)
+
+- **Clear steps when macOS blocks the app.** The disk image now has a text file next to the app, "If macOS blocks the app.txt", with the steps to allow the unsigned app or installer on macOS 15 and later (Privacy & Security → Open Anyway) and on macOS 14 and earlier (right-click → Open). The README has the same steps.
+- The README and the website list only the install methods that are live: Homebrew, the installer, the disk image, the Claude Code plugin, curl and git. npm and PyPI packages are ready and will be listed once they are published.
+
 ## 0.1.1 (2026-11-15)
 
-- **More ways to install.** Homebrew (`brew install jackson-cmd/tap/claude-multi-desktop`), a Mac installer (`.pkg`), a disk image (`.dmg`), npm (`npx claude-multi-desktop`) and a Claude Code plugin marketplace.
+- **More ways to install.** Homebrew (`brew install jackson-cmd/tap/claude-multi-desktop`), a Mac installer (`.pkg`), a disk image (`.dmg`) and a Claude Code plugin marketplace, plus npm and PyPI packaging.
 - **Claude Multi Desktop app.** The installer and the disk image carry a small double-click app that adds, opens, renames and removes accounts through dialogs, so you never need Terminal.
 - **Custom icons.** `add NAME --icon claude` gives the launcher your own Claude icon with a coloured letter badge, drawn on your Mac from the Claude.app you have (nothing from Anthropic is shipped). `--icon /path/to/picture` uses any picture. `icon NAME` changes the icon or colour of an existing launcher.
 - **Rename.** `rename NAME NEW` gives a launcher a new name and keeps its sign-in and chats.

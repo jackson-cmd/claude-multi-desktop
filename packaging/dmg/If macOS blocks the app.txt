@@ -1,0 +1,14 @@
+If macOS says "Apple could not verify 'Claude Multi Desktop' is free of malware"
+
+The app and the installer are not signed with an Apple Developer ID, so macOS blocks them the first time you open them. The code is open source, and you only need to allow it once.
+
+macOS 15 (Sequoia) and later:
+1. Double-click the app (or the .pkg) once. When macOS blocks it, click Done.
+2. Open System Settings → Privacy & Security and scroll down to the Security section. You will see "'Claude Multi Desktop' was blocked to protect your Mac." (for the installer, its file name). Click Open Anyway.
+3. Enter your Mac login password (or use Touch ID). If macOS asks once more, click Open Anyway again. From then on it opens normally.
+
+macOS 14 (Sonoma) and earlier:
+1. Right-click (or Control-click) the app (or the .pkg) and choose Open.
+2. Click Open in the dialog. You only do this once.
+
+Want no warning at all? Install with Homebrew instead: brew install jackson-cmd/tap/claude-multi-desktop
