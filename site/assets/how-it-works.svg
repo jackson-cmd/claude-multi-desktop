@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>How claude-multi-desktop works: one Claude.app, one window per account, one shared Claude Code setup</title>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563c9"/>
+    </marker>
+  </defs>
+  <rect width="900" height="430" fill="#ffffff"/>
+
+  <!-- the one app -->
+  <rect x="330" y="18" width="240" height="52" rx="8" fill="#f4f4f5" stroke="#333" stroke-width="1.5"/>
+  <text x="450" y="41" text-anchor="middle" font-size="16" font-weight="600" fill="#111">/Applications/Claude.app</text>
+  <text x="450" y="60" text-anchor="middle" font-size="12.5" fill="#555">installed once, updated once</text>
+
+  <!-- launch arrows -->
+  <path d="M390 70 L150 122" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <path d="M450 70 L450 122" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <path d="M510 70 L750 122" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <text x="40" y="92" font-size="11.5" fill="#555">open -n … --user-data-dir=&lt;folder&gt;</text>
+
+  <!-- three accounts -->
+  <g>
+    <rect x="40" y="126" width="220" height="118" rx="8" fill="#fff" stroke="#333" stroke-width="1.5"/>
+    <rect x="40" y="126" width="220" height="30" rx="8" fill="#e8eefb" stroke="#333" stroke-width="1.5"/>
+    <text x="150" y="146" text-anchor="middle" font-size="14.5" font-weight="600" fill="#111">Claude Main</text>
+    <text x="56" y="178" font-size="12.5" fill="#222">account A · sign-in, chats</text>
+    <text x="56" y="198" font-size="12" fill="#555">folder: Claude (the default)</text>
+    <rect x="56" y="210" width="188" height="24" rx="5" fill="#f4f4f5" stroke="#999"/>
+    <text x="150" y="226" text-anchor="middle" font-size="12" fill="#222">Code session “paper review”</text>
+  </g>
+  <g>
+    <rect x="340" y="126" width="220" height="118" rx="8" fill="#fff" stroke="#333" stroke-width="1.5"/>
+    <rect x="340" y="126" width="220" height="30" rx="8" fill="#e6f4ec" stroke="#333" stroke-width="1.5"/>
+    <text x="450" y="146" text-anchor="middle" font-size="14.5" font-weight="600" fill="#111">Claude Work</text>
+    <text x="356" y="178" font-size="12.5" fill="#222">account B · sign-in, chats</text>
+    <text x="356" y="198" font-size="12" fill="#555">folder: Claude-Work</text>
+    <rect x="356" y="210" width="188" height="24" rx="5" fill="#f4f4f5" stroke="#999"/>
+    <text x="450" y="226" text-anchor="middle" font-size="12" fill="#222">Code session “build fix”</text>
+  </g>
+  <g>
+    <rect x="640" y="126" width="220" height="118" rx="8" fill="#fff" stroke="#333" stroke-width="1.5"/>
+    <rect x="640" y="126" width="220" height="30" rx="8" fill="#f3ecfb" stroke="#333" stroke-width="1.5"/>
+    <text x="750" y="146" text-anchor="middle" font-size="14.5" font-weight="600" fill="#111">Claude Personal</text>
+    <text x="656" y="178" font-size="12.5" fill="#222">account C · sign-in, chats</text>
+    <text x="656" y="198" font-size="12" fill="#555">folder: Claude-Personal</text>
+    <rect x="656" y="210" width="188" height="24" rx="5" fill="#f4f4f5" stroke="#999"/>
+    <text x="750" y="226" text-anchor="middle" font-size="12" fill="#222">Code session “trip planning”</text>
+  </g>
+
+  <!-- cross-account message -->
+  <path d="M544 222 L654 222" stroke="#2563c9" stroke-width="1.8" stroke-dasharray="5 4" fill="none" marker-start="url(#arrb)" marker-end="url(#arrb)"/>
+  <path d="M244 222 L354 222" stroke="#2563c9" stroke-width="1.8" stroke-dasharray="5 4" fill="none" marker-start="url(#arrb)" marker-end="url(#arrb)"/>
+  <text x="600" y="266" text-anchor="middle" font-size="12.5" font-weight="600" fill="#2563c9">sessions message each other</text>
+  <text x="600" y="282" text-anchor="middle" font-size="11.5" fill="#2563c9">across accounts</text>
+
+  <!-- shared setup -->
+  <path d="M150 244 L150 330" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <path d="M450 244 L450 330" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <path d="M750 244 L750 330" stroke="#333" stroke-width="1.4" fill="none" marker-end="url(#arr)"/>
+  <text x="160" y="296" font-size="11.5" fill="#555">reads</text>
+  <rect x="40" y="334" width="820" height="76" rx="8" fill="#f4f4f5" stroke="#333" stroke-width="1.5"/>
+  <text x="450" y="361" text-anchor="middle" font-size="15" font-weight="600" fill="#111">One shared ~/.claude</text>
+  <text x="450" y="386" text-anchor="middle" font-size="13" fill="#222">skills · CLAUDE.md · memory · MCP servers · hooks · settings · the list of running sessions</text>
+</svg>

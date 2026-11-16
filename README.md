@@ -1,0 +1,178 @@
+# claude-multi-desktop
+
+**Run two or more Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in, and all of them share one Claude Code setup, so a session in one account can send work to a session in another.**
+
+One bash script · nothing to install · never modifies Claude.app · macOS
+
+[Website](https://jackson-cmd.github.io/claude-multi-desktop/) · [Quick start](#quick-start) · [Sessions talk across accounts](#sessions-talk-across-accounts) · [What is shared](#what-is-shared-and-what-is-not) · [FAQ](#faq)
+
+[![tests](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+
+<p align="center"><img src="site/assets/how-it-works.svg" alt="One Claude.app opens one window per account. Each window has its own sign-in and chats, all windows read one shared ~/.claude, and Claude Code sessions in different accounts can message each other." width="860"></p>
+
+## What makes it different
+
+Claude Desktop runs one account at a time. If you open it again, the same window comes back to the front. Other tools work around this by keeping every account fully separate, Claude Code setup included. This tool keeps the sign-ins separate and lets the accounts share the rest, and that has three uses:
+
+1. **Separate accounts, one setup.** Each window signs in to its own Claude account and keeps its own chats, projects and plan. Claude Code in every window reads the same `~/.claude`: your skills, `CLAUDE.md`, memory, MCP servers, hooks and settings. If you write a skill once, every account loads it the next time it starts a session, and you never copy setup files between accounts.
+
+2. **Sessions talk across accounts.** Every account records its running Claude Code sessions in the same place, so a session in your Work window can see the sessions in your Personal window and send one a message, using Claude Code's built-in `ListAgents` and `SendMessage` tools. You can type *"ask the trip planning session in my Personal account to check the hotel list"* and the message reaches that session with no copy and paste. `claude-multi-desktop peers` shows which session runs in which account:
+
+   ```text
+   $ claude-multi-desktop peers
+   ACCOUNT        STATUS SESSION
+   Personal       idle   trip planning
+   Work           busy   build fix
+   default        idle   paper review
+   ```
+
+3. **Nothing to install, nothing patched.** It is one bash script you can read in five minutes. Each launcher is a small app that opens the Claude.app you already have with Electron's public `--user-data-dir` flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. When Claude updates, every account gets the update, and uninstalling means deleting the launcher.
+
+## Quick start
+
+You need macOS and [Claude Desktop](https://claude.ai/download) in `/Applications`.
+
+```bash
+git clone https://github.com/jackson-cmd/claude-multi-desktop.git
+cd claude-multi-desktop
+./claude-multi-desktop add Work          # a launcher called "Claude Work" with its own sign-in
+./claude-multi-desktop open Work         # opens a second Claude window; sign in with your other account
+./claude-multi-desktop add Main --default  # a launcher for the account you already use
+```
+
+That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
+
+<details>
+<summary>Put the command on your PATH (optional)</summary>
+
+```bash
+mkdir -p ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/jackson-cmd/claude-multi-desktop/main/claude-multi-desktop -o ~/.local/bin/claude-multi-desktop
+chmod +x ~/.local/bin/claude-multi-desktop
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc   # then open a new terminal
+```
+
+</details>
+
+## Step by step
+
+1. **Keep using Claude as you do now.** Your current account stays as it is; nothing about it changes.
+2. **Add an account:** `claude-multi-desktop add Work`. This creates `~/Applications/Claude Work.app` with its own coloured icon, and an empty folder for that account's sign-in and chats.
+3. **Open it and sign in** with the other account: `claude-multi-desktop open Work`, or double-click the launcher.
+4. **Add a launcher for your first account:** `claude-multi-desktop add Main --default`. While another account is open, clicking the normal Claude icon only brings that window forward. **Claude Main** always opens your first account.
+5. **Add as many as you need:** `add Personal`, `add "Client A"`, and so on. Pick a colour with `--color 2E9D6A`.
+
+> **Signing in.** Sign-in happens once per account. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.
+
+## Sessions talk across accounts
+
+This works in the **Code** tab of Claude Desktop (tested with Claude Code 2.1). Open a session in any account and ask in plain words:
+
+- *"List the other Claude sessions running on this Mac."* Claude calls `ListAgents` and shows sessions from every account.
+- *"Send the session called build fix in my Work account this summary and ask it to run the tests."* Claude calls `SendMessage` and the Work session picks it up.
+- *"When it replies, tell me what it found."* Replies come back the same way.
+
+For example, you can draft a plan in your personal account and hand the implementation to a session in your work account, or have one account review what another wrote, with the shared skills and `CLAUDE.md` on both sides.
+
+From the terminal, `claude-multi-desktop peers` lists the running sessions and the account each one belongs to. It reads Claude Code's local session list, so a future Claude release may change what it can show.
+
+## What is shared and what is not
+
+| | Separate in each account | Shared by every account |
+|---|:---:|:---:|
+| Sign-in, plan, chats and projects | ✓ | |
+| Desktop settings, connectors, extensions, `claude_desktop_config.json` | ✓ | |
+| Claude Code skills, commands, agents, hooks, `settings.json` | | ✓ |
+| `CLAUDE.md` and Claude Code memory | | ✓ |
+| Claude Code MCP servers | | ✓ |
+| List of running Claude Code sessions (what makes messaging work) | | ✓ |
+
+Claude Desktop keeps each account in its own folder under `~/Library/Application Support/` (`Claude` for your first account, `Claude-Work`, `Claude-Personal`, …). Claude Code keeps its setup in `~/.claude` (and `~/.claude.json`), and the launchers leave both alone, so every account uses the same ones.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `add NAME` | Make the launcher `Claude NAME` with its own sign-in (folder `Claude-NAME`) |
+| `add NAME --default` | Make a launcher for the account you already use |
+| `add NAME --color HEX` | Choose the icon colour, e.g. `--color 7A5AE0` |
+| `list` | Show your launchers, their folders and which ones are open |
+| `open NAME` | Open that account's window |
+| `peers` | Show the Claude Code sessions running in every account |
+| `remove NAME` | Delete the launcher and keep the account's sign-in and chats |
+| `remove NAME --delete-data` | Also delete that account's folder (asks you to type the name; never touches your first account) |
+
+Launchers go to `~/Applications`; set `CMD_APPS_DIR` to put them elsewhere. If Claude.app is not in `/Applications` or `~/Applications`, set `CLAUDE_APP=/path/to/Claude.app`.
+
+## How it works
+
+Claude Desktop is an Electron app. Electron lets one app run several times if each copy keeps its data in a different folder, which the `--user-data-dir` flag sets. A launcher made by `add Work` contains this one line:
+
+```bash
+exec open -n -a "/Applications/Claude.app" --args --user-data-dir="$HOME/Library/Application Support/Claude-Work"
+```
+
+`open -n` starts a new copy even when Claude is already running, and the flag gives that copy its own sign-in and chats. Claude Code sessions started from any copy still use `~/.claude`, which is why the setup and the session list are shared. The icon is a coloured square with the first letter of the name, drawn on your Mac when you run `add`; no Anthropic artwork is used or shipped.
+
+## Good to know
+
+- **Dock icons.** Each open account shows up as its own Claude icon in the Dock. Those icons look the same, so start accounts from the launchers, which have their own colours.
+- **After an update.** If Claude restarts itself after an update and a window comes back on the wrong account, quit it and open it again from its launcher.
+- **Shared means shared.** Memory or `CLAUDE.md` text written in one account is visible to the others. If work data must stay inside the work account, use a tool that isolates Claude Code too (see below).
+- **macOS only.** Windows and Linux users, see the tools below.
+
+## Other tools
+
+Several free tools run more than one Claude Desktop account. They make different choices, and which one fits depends on what you want shared:
+
+| Tool | Approach | Pick it when |
+|---|---|---|
+| **claude-multi-desktop** (this) | One bash script; separate sign-ins, one shared `~/.claude` | you want one Claude Code setup in every account and sessions that can message across accounts |
+| [claude-multiprofile](https://github.com/jmdarre-v/claude-multiprofile) | npm tool; separate Desktop and Claude Code profiles, a `doctor` command | you want accounts fully isolated, Claude Code included |
+| [claude-fix](https://github.com/sarhej/claude-fix) | Shell script with isolated launchers and an optional sign-in router | you want isolated launchers installed through Homebrew |
+| [Duplex](https://github.com/bnimit/duplex) | SwiftUI app for any Electron app | you want a GUI and other Electron apps too |
+| [claude-desktop-clone](https://github.com/vodongha/claude-desktop-clone) | PowerShell | you are on Windows |
+
+## FAQ
+
+### How do I use two Claude accounts at the same time on a Mac?
+
+Run `claude-multi-desktop add Work`, open **Claude Work** and sign in with the second account. Your first account keeps working in its own window, and both stay open side by side.
+
+### Why does opening Claude a second time just bring the same window back?
+
+Claude Desktop allows one running copy per data folder. A launcher from this tool starts Claude with a different data folder, so macOS opens a second, independent window.
+
+### Do my Claude Code skills, `CLAUDE.md` and MCP servers work in every account?
+
+Yes. Every account reads the same `~/.claude`, so they are all available everywhere, and a change made in one account shows up in the others the next time a session starts.
+
+### Can Claude Code sessions in different Claude accounts talk to each other?
+
+Yes. Ask a session to list the other sessions on this Mac and to send one of them a message; it uses Claude Code's `ListAgents` and `SendMessage` tools. See [Sessions talk across accounts](#sessions-talk-across-accounts).
+
+### Does this modify, copy or re-sign Claude.app?
+
+No. Launchers only open the Claude.app you already have, with a public Electron flag. Claude's own updates keep working for every account.
+
+### How do I remove an account or uninstall?
+
+Run `claude-multi-desktop remove Work` to delete the launcher, or `remove Work --delete-data` to delete that account's folder too. To uninstall, remove your launchers and delete the script. Your first account is never touched.
+
+### Is this an official Anthropic tool?
+
+No. It is an independent open-source project and is not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic. Each account you sign in to remains subject to Anthropic's terms.
+
+## Tests
+
+```bash
+bash tests/test.sh
+```
+
+The tests run in a temporary home folder with a stand-in Claude.app. They create, list and remove launchers, check the icon and the plist, and map fake sessions to accounts, without ever opening Claude. CI runs them on macOS together with ShellCheck.
+
+## License
+
+[MIT](LICENSE)

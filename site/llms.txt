@@ -1,0 +1,10 @@
+# claude-multi-desktop
+
+> Free, open-source bash script (MIT) that runs two or more Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in and chats; all windows share one Claude Code setup (~/.claude), so skills, CLAUDE.md, memory and MCP servers are the same in every account, and Claude Code sessions in different accounts can find and message each other with ListAgents and SendMessage. It never copies, patches or re-signs Claude.app; launchers use Electron's public --user-data-dir flag. Not affiliated with Anthropic.
+
+## Docs
+
+- [Home](https://jackson-cmd.github.io/claude-multi-desktop/): what it does, quick start, commands, FAQ
+- [Two Claude accounts on a Mac](https://jackson-cmd.github.io/claude-multi-desktop/guides/two-claude-accounts-on-mac.html): step-by-step setup
+- [Sessions across accounts](https://jackson-cmd.github.io/claude-multi-desktop/guides/claude-code-sessions-across-accounts.html): let Claude Code sessions in different accounts message each other
+- [Source and README](https://github.com/jackson-cmd/claude-multi-desktop)

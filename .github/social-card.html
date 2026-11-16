@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;width:1280px;height:640px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:#1d1d1f}
+.wrap{padding:64px 72px;display:flex;flex-direction:column;height:100%;box-sizing:border-box}
+h1{font-size:64px;margin:0 0 18px;letter-spacing:-0.02em}
+p{font-size:30px;line-height:1.35;margin:0 0 30px;color:#333;max-width:1080px}
+.row{display:flex;gap:22px;margin-top:auto}
+.win{flex:1;border:2px solid #333;border-radius:12px;overflow:hidden}
+.bar{padding:12px 18px;font-size:24px;font-weight:600;border-bottom:2px solid #333}
+.body{padding:14px 18px;font-size:20px;color:#444}
+.shared{margin-top:18px;border:2px solid #333;border-radius:12px;background:#f4f4f5;padding:14px 18px;font-size:22px;text-align:center}
+.foot{font-size:20px;color:#666;margin-top:16px}
+</style></head><body><div class="wrap">
+<h1>claude-multi-desktop</h1>
+<p>Several Claude Desktop accounts at once on one Mac. Separate sign-ins, one shared Claude Code setup, and sessions that message each other across accounts.</p>
+<div class="row">
+<div class="win"><div class="bar" style="background:#e8eefb">Claude Main</div><div class="body">account A · own sign-in</div></div>
+<div class="win"><div class="bar" style="background:#e6f4ec">Claude Work</div><div class="body">account B · own sign-in</div></div>
+<div class="win"><div class="bar" style="background:#f3ecfb">Claude Personal</div><div class="body">account C · own sign-in</div></div>
+</div>
+<div class="shared">one shared ~/.claude: skills · CLAUDE.md · memory · MCP servers · sessions</div>
+<div class="foot">One bash script · MIT · github.com/jackson-cmd/claude-multi-desktop</div>
+</div></body></html>

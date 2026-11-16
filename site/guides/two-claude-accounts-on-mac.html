@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to use two Claude accounts at the same time on a Mac | claude-multi-desktop</title>
+<meta name="description" content="Step by step: open a work and a personal Claude Desktop account side by side on macOS, each with its own sign-in, using a free open-source launcher. No copy of Claude.app, nothing to install.">
+<link rel="canonical" href="https://jackson-cmd.github.io/claude-multi-desktop/guides/two-claude-accounts-on-mac.html">
+<link rel="stylesheet" href="../style.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to use two Claude accounts at the same time on a Mac">
+<meta property="og:description" content="Open a work and a personal Claude Desktop account side by side, each with its own sign-in.">
+<meta property="og:url" content="https://jackson-cmd.github.io/claude-multi-desktop/guides/two-claude-accounts-on-mac.html">
+<meta property="og:image" content="https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="claude-multi-desktop: three Claude Desktop windows, one per account">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How to use two Claude accounts at the same time on a Mac",
+  "description": "Open a work and a personal Claude Desktop account side by side on macOS, each with its own sign-in.",
+  "url": "https://jackson-cmd.github.io/claude-multi-desktop/guides/two-claude-accounts-on-mac.html",
+  "about": "Claude Desktop multiple accounts",
+  "proficiencyLevel": "Beginner",
+  "image": "https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png"
+}
+</script>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="../"><strong>claude-multi-desktop</strong></a>
+    <a href="two-claude-accounts-on-mac.html">Two accounts on a Mac</a>
+    <a href="claude-code-sessions-across-accounts.html">Sessions across accounts</a>
+    <a href="https://github.com/jackson-cmd/claude-multi-desktop">GitHub</a>
+  </nav>
+  <h1>How to use two Claude accounts at the same time on a Mac</h1>
+  <p class="lead">Claude Desktop signs in to one account at a time, and opening it again only brings the same window forward. Here is how to keep a work account and a personal account open side by side.</p>
+</header>
+<main>
+  <h2>Why Claude opens only one window</h2>
+  <p>Claude Desktop is an Electron app, and Electron lets one copy run per data folder. Your sign-in, chats and settings live in <code>~/Library/Application Support/Claude</code>. When you open Claude a second time, macOS finds the copy that already uses that folder and brings it to the front.</p>
+  <p>If a second copy uses a different folder, it runs on its own with its own sign-in. The <code>--user-data-dir</code> flag sets that folder, and <code>open -n</code> asks macOS for a new copy. claude-multi-desktop makes small launcher apps that do exactly this, so you never type the flags yourself.</p>
+
+  <h2>Step 1: get the script</h2>
+<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
+cd claude-multi-desktop</code></pre>
+  <p>It is one bash script with no dependencies, and you can read all of it before running it.</p>
+
+  <h2>Step 2: add your second account</h2>
+<pre><code>./claude-multi-desktop add Work</code></pre>
+  <p>This creates <code>~/Applications/Claude Work.app</code> with a coloured icon, and an empty folder <code>~/Library/Application Support/Claude-Work</code> that will hold this account's sign-in and chats.</p>
+
+  <h2>Step 3: open it and sign in</h2>
+<pre><code>./claude-multi-desktop open Work</code></pre>
+  <p>A second Claude window opens with no account. Sign in with your other account. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers. You only sign in once per account.</p>
+
+  <h2>Step 4: add a launcher for your first account</h2>
+<pre><code>./claude-multi-desktop add Main --default</code></pre>
+  <p>While another account is open, clicking the normal Claude icon only brings that window forward. <em>Claude Main</em> always opens the account you were already using, so put both launchers in the Dock.</p>
+
+  <h2>Step 5: check what is open</h2>
+<pre><code>$ ./claude-multi-desktop list
+LAUNCHER               STATE  ACCOUNT FOLDER
+Claude Main            open   ~/Library/Application Support/Claude
+Claude Work            open   ~/Library/Application Support/Claude-Work</code></pre>
+
+  <h2>What stays separate, what is shared</h2>
+  <p>Each account keeps its own sign-in, plan, chats, projects, Desktop settings and connectors. Claude Code in every account reads the same <code>~/.claude</code>, so your skills, <code>CLAUDE.md</code>, memory and MCP servers are the same everywhere, and sessions in different accounts <a href="claude-code-sessions-across-accounts.html">can message each other</a>.</p>
+  <p>If work data must never reach a personal account, use a tool that isolates Claude Code too, such as <a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile</a>.</p>
+
+  <h2>Remove an account</h2>
+<pre><code>./claude-multi-desktop remove Work                # keep its sign-in and chats
+./claude-multi-desktop remove Work --delete-data  # delete its folder too</code></pre>
+  <p>Your first account is never deleted by the tool.</p>
+</main>
+<footer>
+  claude-multi-desktop is an independent open-source project (MIT) and is not affiliated with or endorsed by Anthropic. “Claude” is a trademark of Anthropic.
+  · <a href="https://github.com/jackson-cmd/claude-multi-desktop">Source on GitHub</a>
+</footer>
+</body>
+</html>

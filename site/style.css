@@ -1,0 +1,27 @@
+:root { --bg: #ffffff; --fg: #1d1d1f; --muted: #5f6368; --line: #d9d9de; --soft: #f4f4f6; --link: #2457c5; --code: #f1f1f4; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #151517; --fg: #ececf0; --muted: #a2a2aa; --line: #34343a; --soft: #1e1e22; --link: #8fb0ff; --code: #232328; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+main, header, footer { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+header { padding-top: 36px; }
+nav { font-size: 15px; display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 28px; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 34px; line-height: 1.2; margin: 0 0 14px; letter-spacing: -0.01em; }
+h2 { font-size: 23px; margin: 40px 0 10px; }
+h3 { font-size: 18px; margin: 26px 0 6px; }
+.lead { font-size: 19px; color: var(--fg); margin: 0 0 10px; }
+.sub { color: var(--muted); margin: 0 0 24px; }
+.button { display: inline-block; padding: 9px 16px; border: 1px solid var(--line); border-radius: 8px; margin: 0 8px 8px 0; background: var(--soft); color: var(--fg); }
+.diagram { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; margin: 18px 0 6px; }
+pre { background: var(--code); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+code { font: 0.92em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 5px; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+ol.points > li { margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 12px 0; display: block; overflow-x: auto; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { font-weight: 600; }
+td.c, th.c { text-align: center; }
+footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); margin-top: 48px; padding-top: 16px; padding-bottom: 40px; }

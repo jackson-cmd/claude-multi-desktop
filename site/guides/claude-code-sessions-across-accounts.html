@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Let Claude Code sessions in different Claude accounts message each other | claude-multi-desktop</title>
+<meta name="description" content="Run Claude Desktop with several accounts on one Mac and let their Claude Code sessions find and message each other with ListAgents and SendMessage, sharing one set of skills, CLAUDE.md and memory.">
+<link rel="canonical" href="https://jackson-cmd.github.io/claude-multi-desktop/guides/claude-code-sessions-across-accounts.html">
+<link rel="stylesheet" href="../style.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Let Claude Code sessions in different Claude accounts message each other">
+<meta property="og:description" content="Sessions in different Claude Desktop accounts on one Mac can find and message each other, with one shared Claude Code setup.">
+<meta property="og:url" content="https://jackson-cmd.github.io/claude-multi-desktop/guides/claude-code-sessions-across-accounts.html">
+<meta property="og:image" content="https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="claude-multi-desktop: Claude Code sessions in different accounts messaging each other">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Let Claude Code sessions in different Claude accounts message each other",
+  "description": "Run Claude Desktop with several accounts on one Mac and let their Claude Code sessions find and message each other.",
+  "url": "https://jackson-cmd.github.io/claude-multi-desktop/guides/claude-code-sessions-across-accounts.html",
+  "about": "Claude Code multiple accounts",
+  "proficiencyLevel": "Intermediate",
+  "image": "https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png"
+}
+</script>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="../"><strong>claude-multi-desktop</strong></a>
+    <a href="two-claude-accounts-on-mac.html">Two accounts on a Mac</a>
+    <a href="claude-code-sessions-across-accounts.html">Sessions across accounts</a>
+    <a href="https://github.com/jackson-cmd/claude-multi-desktop">GitHub</a>
+  </nav>
+  <h1>Let Claude Code sessions in different Claude accounts message each other</h1>
+  <p class="lead">With claude-multi-desktop, every Claude Desktop account on your Mac shares one Claude Code setup. Sessions in one account can therefore see the sessions in another account and send them messages.</p>
+</header>
+<main>
+  <h2>Why it works</h2>
+  <p>Claude Desktop keeps each account in its own folder, but the Claude Code sessions it starts all use <code>~/.claude</code>. That folder holds your skills, <code>CLAUDE.md</code>, memory and settings, and also the list of Claude Code sessions running on this Mac. Because every account writes to the same list, a session in one account finds sessions in the others, and Claude Code's <code>ListAgents</code> and <code>SendMessage</code> tools can reach them.</p>
+  <p>Tools that give every account its own Claude Code folder keep accounts apart on purpose. That is the right choice when accounts must never meet, and this tool is for when you want them to work together.</p>
+
+  <h2>Set it up</h2>
+<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
+cd claude-multi-desktop
+./claude-multi-desktop add Personal   # then open it and sign in
+./claude-multi-desktop add Main --default</code></pre>
+  <p>Open a session in the <strong>Code</strong> tab of each window. This was tested with Claude Code 2.1 inside Claude Desktop.</p>
+
+  <h2>See every session</h2>
+<pre><code>$ ./claude-multi-desktop peers
+ACCOUNT        STATUS SESSION
+Personal       idle   trip planning
+default        busy   paper review</code></pre>
+  <p>The same list is what a session sees when it calls <code>ListAgents</code>.</p>
+
+  <h2>Send work across accounts</h2>
+  <p>In any session, ask in plain words:</p>
+  <ul>
+    <li>“List the other Claude sessions running on this Mac.”</li>
+    <li>“Send the trip planning session in my Personal account this list and ask it to pick three hotels.”</li>
+    <li>“When it replies, summarise what it chose.”</li>
+  </ul>
+  <p>The message arrives in the other account's session as a new turn, and that session answers with its own account, its own chat history and the same shared skills. You can draft in one account and have another account review it, or hand a long task to a session that is free.</p>
+
+  <h2>Things to keep in mind</h2>
+  <ul>
+    <li>Everything in <code>~/.claude</code> is shared, including memory written by any account.</li>
+    <li><code>peers</code> reads Claude Code's local session list, so a future Claude release may change what it can show.</li>
+    <li>Each account remains subject to Anthropic's terms.</li>
+  </ul>
+</main>
+<footer>
+  claude-multi-desktop is an independent open-source project (MIT) and is not affiliated with or endorsed by Anthropic. “Claude” is a trademark of Anthropic.
+  · <a href="https://github.com/jackson-cmd/claude-multi-desktop">Source on GitHub</a>
+</footer>
+</body>
+</html>

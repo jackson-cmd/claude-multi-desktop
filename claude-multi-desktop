@@ -1,0 +1,301 @@
+#!/usr/bin/env bash
+# claude-multi-desktop: run several Claude Desktop accounts side by side on one Mac.
+# Every account keeps its own sign-in and chats; Claude Code in every account shares one ~/.claude.
+# https://github.com/jackson-cmd/claude-multi-desktop  ·  MIT License  ·  not affiliated with Anthropic
+set -euo pipefail
+
+VERSION="0.1.0"
+SUPPORT="$HOME/Library/Application Support"
+APPS_DIR="${CMD_APPS_DIR:-$HOME/Applications}"
+CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+MARKER="# claude-multi-desktop launcher"
+PALETTE=(3B6FD8 2E9D6A 7A5AE0 1F9AA8 D2504B C98A12 C8508A 5C6470)
+
+die() { printf 'claude-multi-desktop: %s\n' "$*" >&2; exit 1; }
+say() { printf '%s\n' "$*"; }
+
+usage() {
+  cat <<'EOF'
+claude-multi-desktop: run several Claude Desktop accounts side by side on one Mac.
+
+Usage:
+  claude-multi-desktop add NAME [--color HEX]   Make a launcher "Claude NAME" with its own sign-in
+  claude-multi-desktop add NAME --default       Make a launcher for the account you already use
+  claude-multi-desktop list                     Show your launchers and which are open
+  claude-multi-desktop open NAME                Open that account's window
+  claude-multi-desktop peers                    Show Claude Code sessions running in every account
+  claude-multi-desktop remove NAME [--delete-data]
+  claude-multi-desktop version | help
+
+Launchers go to ~/Applications (set CMD_APPS_DIR to change it). Each new account keeps its
+sign-in and chats in ~/Library/Application Support/Claude-NAME. Claude Code in every account
+reads the same ~/.claude, so skills, CLAUDE.md, memory and MCP servers are shared and sessions
+in different accounts can message each other.
+EOF
+}
+
+find_claude() {
+  local p
+  for p in "${CLAUDE_APP:-}" "/Applications/Claude.app" "$HOME/Applications/Claude.app"; do
+    if [ -n "$p" ] && [ -x "$p/Contents/MacOS/Claude" ]; then printf '%s' "$p"; return 0; fi
+  done
+  return 1
+}
+
+check_name() {
+  local n="$1"
+  [[ "$n" =~ ^[A-Za-z0-9][A-Za-z0-9\ _-]{0,29}$ ]] ||
+    die "name must be 1-30 letters, digits, spaces, '-' or '_', starting with a letter or digit: '$n'"
+  [[ ! "$n" =~ [-\ ]?3[pP]$ ]] || die "names ending in '3p' clash with folders Claude Desktop creates itself"
+  [[ "$n" != *" " ]] || die "name must not end with a space"
+}
+
+app_path() { printf '%s/Claude %s.app' "$APPS_DIR" "$1"; }
+slug() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed 's/-*$//'; }
+
+# Folder (under ~/Library/Application Support) that a launcher points at, read from the launcher itself.
+launcher_dir() {
+  local line
+  line="$(grep -o 'user-data-dir="[^"]*"' "$1/Contents/MacOS/launcher" 2>/dev/null | head -1)" || return 1
+  line="${line#user-data-dir=\"}"; line="${line%\"}"
+  printf '%s' "${line/\$HOME/$HOME}"
+}
+
+is_open() { # true when a Claude process runs with this account folder
+  local esc procs
+  esc="$(printf '%s' "$1" | sed 's/[][\.*^$+?(){}|]/\\&/g')"
+  procs="$(ps -axo command= 2>/dev/null || true)"
+  grep -Eq -- "--user-data-dir=${esc}( |$)" <<< "$procs" && return 0
+  # The default account also runs when Claude.app is opened the normal way, with no flag at all.
+  [ "$1" = "$SUPPORT/Claude" ] && grep -Eq '/Claude\.app/Contents/MacOS/Claude$' <<< "$procs"
+}
+
+make_icon() { # LETTER HEX OUT.icns ; draws a rounded square with a letter, no Anthropic artwork
+  local tmp; tmp="$(mktemp -d)"
+  osascript -l JavaScript - "$1" "$2" "$tmp/icon.png" >/dev/null 2>&1 <<'JXA' || true
+ObjC.import('AppKit');
+function run(argv) {
+  const letter = argv[0], n = parseInt(argv[1], 16), out = argv[2], size = 1024;
+  const rep = $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel(
+    null, size, size, 8, 4, true, false, $.NSDeviceRGBColorSpace, 0, 0);
+  $.NSGraphicsContext.saveGraphicsState;
+  $.NSGraphicsContext.setCurrentContext($.NSGraphicsContext.graphicsContextWithBitmapImageRep(rep));
+  $.NSColor.colorWithSRGBRedGreenBlueAlpha(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1).setFill;
+  $.NSBezierPath.bezierPathWithRoundedRectXRadiusYRadius($.NSMakeRect(100, 100, 824, 824), 185, 185).fill;
+  const attrs = $.NSMutableDictionary.dictionary;
+  attrs.setObjectForKey($.NSFont.boldSystemFontOfSize(500), $('NSFont'));
+  attrs.setObjectForKey($.NSColor.whiteColor, $('NSColor'));
+  const s = $.NSString.alloc.initWithString(letter), sz = s.sizeWithAttributes(attrs);
+  s.drawAtPointWithAttributes($.NSMakePoint((size - sz.width) / 2, (size - sz.height) / 2), attrs);
+  $.NSGraphicsContext.restoreGraphicsState;
+  rep.representationUsingTypeProperties(4 /* PNG */, $()).writeToFileAtomically(out, true);
+}
+JXA
+  if [ -s "$tmp/icon.png" ]; then
+    local sz; mkdir -p "$tmp/icon.iconset"
+    for sz in 16 32 128 256 512; do
+      sips -z "$sz" "$sz" "$tmp/icon.png" --out "$tmp/icon.iconset/icon_${sz}x${sz}.png" >/dev/null 2>&1 || true
+      sips -z $((sz * 2)) $((sz * 2)) "$tmp/icon.png" --out "$tmp/icon.iconset/icon_${sz}x${sz}@2x.png" >/dev/null 2>&1 || true
+    done
+    iconutil -c icns "$tmp/icon.iconset" -o "$3" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$tmp"
+  [ -s "$3" ]
+}
+
+cmd_add() {
+  local name="" default=0 color=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --default) default=1 ;;
+      --color) shift; color="${1:-}" ;;
+      -h|--help) usage; return 0 ;;
+      -*) die "unknown option: $1" ;;
+      *) [ -z "$name" ] || die "one name at a time (quote names with spaces)"; name="$1" ;;
+    esac
+    shift
+  done
+  [ -n "$name" ] || die "usage: claude-multi-desktop add NAME [--default] [--color HEX]"
+  check_name "$name"
+  local claude; claude="$(find_claude)" || die "Claude.app not found in /Applications or ~/Applications (set CLAUDE_APP=/path/to/Claude.app)"
+  color="${color#\#}"
+  if [ -z "$color" ]; then
+    local i; i=$(( $(printf '%s' "$name" | cksum | cut -d' ' -f1) % ${#PALETTE[@]} ))
+    color="${PALETTE[$i]}"
+  fi
+  [[ "$color" =~ ^[0-9A-Fa-f]{6}$ ]] || die "--color takes a hex colour such as 3B6FD8"
+
+  local app dir_expr dir
+  app="$(app_path "$name")"
+  [ ! -e "$app" ] || die "'$app' already exists (remove it first)"
+  # shellcheck disable=SC2016  # $HOME is written into the launcher literally and expands when it runs
+  if [ "$default" = 1 ]; then dir_expr='$HOME/Library/Application Support/Claude'
+  else dir_expr="\$HOME/Library/Application Support/Claude-$name"; fi
+  dir="${dir_expr/\$HOME/$HOME}"
+  local other
+  for other in "$APPS_DIR"/Claude\ *.app; do
+    [ -e "$other" ] || continue
+    if [ "$(launcher_dir "$other" || true)" = "$dir" ]; then die "'$other' already opens that account"; fi
+  done
+
+  mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
+  cat > "$app/Contents/MacOS/launcher" <<EOF
+#!/bin/bash
+$MARKER (https://github.com/jackson-cmd/claude-multi-desktop)
+exec open -n -a "$claude" --args --user-data-dir="$dir_expr"
+EOF
+  chmod +x "$app/Contents/MacOS/launcher"
+  cat > "$app/Contents/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Claude $name</string>
+  <key>CFBundleDisplayName</key><string>Claude $name</string>
+  <key>CFBundleIdentifier</key><string>local.claude-multi-desktop.$(slug "$name")</string>
+  <key>CFBundleExecutable</key><string>launcher</string>
+  <key>CFBundleIconFile</key><string>icon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>$VERSION</string>
+  <key>CFBundleVersion</key><string>$VERSION</string>
+  <key>LSUIElement</key><true/>
+</dict>
+</plist>
+EOF
+  local letter; letter="$(printf '%s' "$name" | cut -c1 | tr '[:lower:]' '[:upper:]')"
+  make_icon "$letter" "$color" "$app/Contents/Resources/icon.icns" || say "note: could not draw an icon; the launcher works without one"
+  local lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+  [ -x "$lsreg" ] && "$lsreg" -f "$app" >/dev/null 2>&1 || true
+
+  say "Created  $app"
+  say "Account  $dir"
+  if [ "$default" = 1 ]; then
+    say "This launcher opens the account you already use, even while other accounts are open."
+  else
+    say "Next: claude-multi-desktop open \"$name\"   (or double-click it) and sign in with the other account."
+  fi
+}
+
+launchers() { # prints one launcher path per line
+  local a
+  for a in "$APPS_DIR"/Claude\ *.app; do
+    [ -f "$a/Contents/MacOS/launcher" ] && grep -qF "$MARKER" "$a/Contents/MacOS/launcher" && printf '%s\n' "$a"
+  done
+  return 0
+}
+
+cmd_list() {
+  local found=0 a name dir state
+  printf '%-22s %-6s %s\n' "LAUNCHER" "STATE" "ACCOUNT FOLDER"
+  while IFS= read -r a; do
+    [ -n "$a" ] || continue
+    found=1
+    name="$(basename "$a" .app)"; dir="$(launcher_dir "$a" || true)"
+    if is_open "$dir"; then state="open"; else state="-"; fi
+    printf '%-22s %-6s %s\n' "$name" "$state" "${dir/#$HOME/~}"
+  done < <(launchers)
+  [ "$found" = 1 ] || say "(no launchers yet: claude-multi-desktop add Work)"
+}
+
+cmd_open() {
+  [ $# -ge 1 ] || die "usage: claude-multi-desktop open NAME"
+  local app; app="$(app_path "$1")"
+  [ -d "$app" ] || die "no launcher named '$1' (see: claude-multi-desktop list)"
+  open "$app"
+}
+
+cmd_remove() {
+  local name="" del=0 yes=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --delete-data) del=1 ;;
+      --yes|-y) yes=1 ;;
+      -*) die "unknown option: $1" ;;
+      *) name="$1" ;;
+    esac
+    shift
+  done
+  [ -n "$name" ] || die "usage: claude-multi-desktop remove NAME [--delete-data]"
+  local app dir; app="$(app_path "$name")"
+  if ! { [ -f "$app/Contents/MacOS/launcher" ] && grep -qF "$MARKER" "$app/Contents/MacOS/launcher"; }; then
+    die "no launcher made by this tool at '$app'"
+  fi
+  dir="$(launcher_dir "$app" || true)"
+  rm -rf "$app"
+  say "Removed  $app"
+  [ "$del" = 1 ] || { say "Kept the account folder $dir (sign-in and chats). Add --delete-data to delete it."; return 0; }
+  [ "$dir" != "$SUPPORT/Claude" ] || die "refusing to delete your default Claude folder"
+  [[ "$dir" == "$SUPPORT/Claude-"* ]] || die "refusing to delete '$dir': not a folder this tool creates"
+  if is_open "$dir"; then die "that account is still open; quit its window and run remove again"; fi
+  if [ "$yes" != 1 ]; then
+    printf 'Delete %s (sign-in and chats of "%s")? Type the name to confirm: ' "$dir" "$name"
+    local reply; read -r reply
+    [ "$reply" = "$name" ] || die "not deleted"
+  fi
+  [ -d "$dir" ] || { say "Nothing to delete at $dir"; return 0; }
+  rm -rf "$dir"
+  say "Deleted  $dir"
+}
+
+# Which account folder a Claude Code session started from (Claude Desktop records its sessions there).
+profile_of() {
+  local host="${1#local_}" d label
+  [ -n "$host" ] || { printf 'terminal'; return; }
+  for d in "$SUPPORT/Claude" "$SUPPORT"/Claude-*; do
+    [ -d "$d/claude-code-sessions" ] || continue
+    if grep -rqsF -- "$host" "$d/claude-code-sessions"; then
+      label="$(basename "$d")"; label="${label#Claude-}"; [ "$label" = "Claude" ] && label="default"
+      printf '%s' "$label"; return
+    fi
+  done
+  printf '?'
+}
+
+cmd_peers() {
+  local dir="$CLAUDE_HOME/sessions" files=() f pid
+  [ -d "$dir" ] || die "no Claude Code sessions folder at $dir"
+  for f in "$dir"/*.json; do
+    [ -e "$f" ] || continue
+    pid="$(basename "$f" .json)"
+    [[ "$pid" =~ ^[0-9]+$ ]] && kill -0 "$pid" 2>/dev/null && files+=("$f")
+  done
+  if [ ${#files[@]} -eq 0 ]; then say "No Claude Code sessions are running."; return 0; fi
+  printf '%-14s %-6s %s\n' "ACCOUNT" "STATUS" "SESSION"
+  local host status name
+  while IFS=$'\t' read -r host status name; do
+    printf '%-14s %-6s %s\n' "$(profile_of "$host")" "${status:--}" "${name:-(unnamed)}"
+  done < <(osascript -l JavaScript - "${files[@]}" 2>/dev/null <<'JXA'
+ObjC.import('Foundation');
+function run(argv) {
+  const rows = [];
+  for (const p of argv) {
+    try {
+      const d = JSON.parse($.NSString.stringWithContentsOfFileEncodingError(p, $.NSUTF8StringEncoding, null).js);
+      const clean = (v) => String(v || '').replace(/[\t\n]/g, ' ');
+      rows.push([clean(d.hostSessionId), clean(d.status), clean(d.name)].join('\t'));
+    } catch (e) {}
+  }
+  return rows.join('\n');
+}
+JXA
+  ) | sort -s -k1,1
+  say ""
+  say "Sessions in different accounts can message each other: ask Claude to list the other sessions and send one a message."
+}
+
+main() {
+  [ "$(uname -s)" = "Darwin" ] || die "Claude Desktop launchers need macOS"
+  local cmd="${1:-help}"; [ $# -gt 0 ] && shift
+  case "$cmd" in
+    add) cmd_add "$@" ;;
+    list|ls) cmd_list ;;
+    open) cmd_open "$@" ;;
+    peers) cmd_peers ;;
+    remove|rm) cmd_remove "$@" ;;
+    version|--version|-v) say "claude-multi-desktop $VERSION" ;;
+    help|--help|-h) usage ;;
+    *) usage >&2; exit 2 ;;
+  esac
+}
+
+main "$@"

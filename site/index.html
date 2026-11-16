@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run multiple Claude Desktop accounts at once on Mac | claude-multi-desktop</title>
+<meta name="description" content="Free, open-source script to run two or more Claude Desktop accounts side by side on one Mac. Separate sign-ins, one shared Claude Code setup, and sessions that can message each other across accounts.">
+<link rel="canonical" href="https://jackson-cmd.github.io/claude-multi-desktop/">
+<link rel="stylesheet" href="style.css">
+<meta property="og:type" content="website">
+<meta property="og:title" content="claude-multi-desktop: several Claude Desktop accounts on one Mac">
+<meta property="og:description" content="Separate sign-ins, one shared Claude Code setup, and sessions that message each other across accounts. One bash script, nothing to install.">
+<meta property="og:url" content="https://jackson-cmd.github.io/claude-multi-desktop/">
+<meta property="og:image" content="https://jackson-cmd.github.io/claude-multi-desktop/assets/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="claude-multi-desktop: three Claude Desktop windows, one per account, sharing one Claude Code setup">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "claude-multi-desktop",
+  "description": "Run two or more Claude Desktop accounts at the same time on one Mac, with separate sign-ins, one shared Claude Code setup, and Claude Code sessions that can message each other across accounts.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS",
+  "url": "https://jackson-cmd.github.io/claude-multi-desktop/",
+  "downloadUrl": "https://github.com/jackson-cmd/claude-multi-desktop",
+  "softwareVersion": "0.1.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "codeRepository": "https://github.com/jackson-cmd/claude-multi-desktop",
+  "programmingLanguage": "Bash"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "How do I use two Claude accounts at the same time on a Mac?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Run claude-multi-desktop add Work, open Claude Work and sign in with the second account. Your first account keeps working in its own window, and both stay open side by side."}},
+    {"@type": "Question", "name": "Why does opening Claude a second time just bring the same window back?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Claude Desktop allows one running copy per data folder. A launcher from claude-multi-desktop starts Claude with a different data folder, so macOS opens a second, independent window."}},
+    {"@type": "Question", "name": "Do my Claude Code skills, CLAUDE.md and MCP servers work in every account?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. Every account reads the same ~/.claude, so skills, CLAUDE.md, memory, hooks and MCP servers are available everywhere."}},
+    {"@type": "Question", "name": "Can Claude Code sessions in different Claude accounts talk to each other?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. Ask a session to list the other sessions on this Mac and to send one of them a message; it uses Claude Code's ListAgents and SendMessage tools."}},
+    {"@type": "Question", "name": "Does this modify, copy or re-sign Claude.app?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. Launchers only open the Claude.app you already have with Electron's public --user-data-dir flag, so Claude's own updates keep working for every account."}}
+  ]
+}
+</script>
+</head>
+<body>
+<header>
+  <nav>
+    <a href="./"><strong>claude-multi-desktop</strong></a>
+    <a href="guides/two-claude-accounts-on-mac.html">Two accounts on a Mac</a>
+    <a href="guides/claude-code-sessions-across-accounts.html">Sessions across accounts</a>
+    <a href="https://github.com/jackson-cmd/claude-multi-desktop">GitHub</a>
+  </nav>
+  <h1>Run several Claude Desktop accounts at once on one Mac</h1>
+  <p class="lead">Each window has its own sign-in. All of them share one Claude Code setup, so a session in one account can send work to a session in another.</p>
+  <p class="sub">One bash script · nothing to install · never modifies Claude.app · free and open source (MIT)</p>
+  <a class="button" href="https://github.com/jackson-cmd/claude-multi-desktop">Get it on GitHub</a>
+  <a class="button" href="#quick-start">Quick start</a>
+</header>
+<main>
+  <img class="diagram" src="assets/how-it-works.svg" width="900" height="430" alt="One Claude.app opens one window per account. Each window has its own sign-in and chats, all windows read one shared ~/.claude, and Claude Code sessions in different accounts can message each other.">
+
+  <h2>What makes it different</h2>
+  <p>Claude Desktop runs one account at a time. If you open it again, the same window comes back to the front. Other tools work around this by keeping every account fully separate. claude-multi-desktop keeps the sign-ins separate and lets the accounts share the rest:</p>
+  <ol class="points">
+    <li><strong>Separate accounts, one setup.</strong> Each window signs in to its own account and keeps its own chats, projects and plan. Claude Code in every window reads the same <code>~/.claude</code>: skills, <code>CLAUDE.md</code>, memory, MCP servers, hooks and settings. If you write a skill once, every account has it.</li>
+    <li><strong>Sessions talk across accounts.</strong> A Claude Code session in your Work window can see the sessions in your Personal window and send one a message with Claude Code's built-in <code>ListAgents</code> and <code>SendMessage</code> tools. <a href="guides/claude-code-sessions-across-accounts.html">See how</a>.</li>
+    <li><strong>Nothing to install, nothing patched.</strong> Each launcher opens the Claude.app you already have with Electron's public <code>--user-data-dir</code> flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. Claude's updates reach every account.</li>
+  </ol>
+
+  <h2 id="quick-start">Quick start</h2>
+  <p>You need macOS and Claude Desktop in <code>/Applications</code>.</p>
+<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
+cd claude-multi-desktop
+./claude-multi-desktop add Work            # launcher "Claude Work" with its own sign-in
+./claude-multi-desktop open Work           # second window: sign in with your other account
+./claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
+  <p>The launchers go to <code>~/Applications</code>, so Spotlight, Launchpad and the Dock find them. Drag them to the Dock and click whichever account you want; they can all stay open side by side.</p>
+
+  <h2>What is shared and what is not</h2>
+  <table>
+    <tr><th></th><th class="c">Separate per account</th><th class="c">Shared</th></tr>
+    <tr><td>Sign-in, plan, chats and projects</td><td class="c">✓</td><td></td></tr>
+    <tr><td>Desktop settings, connectors, extensions</td><td class="c">✓</td><td></td></tr>
+    <tr><td>Claude Code skills, commands, agents, hooks, settings</td><td></td><td class="c">✓</td></tr>
+    <tr><td><code>CLAUDE.md</code>, memory and MCP servers</td><td></td><td class="c">✓</td></tr>
+    <tr><td>List of running Claude Code sessions</td><td></td><td class="c">✓</td></tr>
+  </table>
+
+  <h2>Commands</h2>
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>add NAME</code></td><td>Make the launcher <em>Claude NAME</em> with its own sign-in</td></tr>
+    <tr><td><code>add NAME --default</code></td><td>Make a launcher for the account you already use</td></tr>
+    <tr><td><code>list</code></td><td>Show launchers and which accounts are open</td></tr>
+    <tr><td><code>open NAME</code></td><td>Open that account's window</td></tr>
+    <tr><td><code>peers</code></td><td>Show Claude Code sessions running in every account</td></tr>
+    <tr><td><code>remove NAME [--delete-data]</code></td><td>Delete a launcher, and optionally that account's folder</td></tr>
+  </table>
+
+  <h2>FAQ</h2>
+  <h3>How do I use two Claude accounts at the same time on a Mac?</h3>
+  <p>Run <code>claude-multi-desktop add Work</code>, open <em>Claude Work</em> and sign in with the second account. Your first account keeps working in its own window. The <a href="guides/two-claude-accounts-on-mac.html">step-by-step guide</a> has the details.</p>
+  <h3>Why does opening Claude a second time just bring the same window back?</h3>
+  <p>Claude Desktop allows one running copy per data folder. A launcher starts Claude with a different data folder, so macOS opens a second, independent window.</p>
+  <h3>Do my Claude Code skills, CLAUDE.md and MCP servers work in every account?</h3>
+  <p>Yes. Every account reads the same <code>~/.claude</code>. If work data must stay inside a work account, use a tool that isolates Claude Code as well, such as <a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile</a>.</p>
+  <h3>Can Claude Code sessions in different accounts talk to each other?</h3>
+  <p>Yes. Ask a session to list the other sessions on this Mac and to message one of them. <a href="guides/claude-code-sessions-across-accounts.html">Read the guide</a>.</p>
+  <h3>Does this modify, copy or re-sign Claude.app?</h3>
+  <p>No. Launchers only open the Claude.app you already have, with a public Electron flag.</p>
+</main>
+<footer>
+  claude-multi-desktop is an independent open-source project (MIT) and is not affiliated with or endorsed by Anthropic. “Claude” is a trademark of Anthropic.
+  · <a href="https://github.com/jackson-cmd/claude-multi-desktop">Source on GitHub</a>
+</footer>
+</body>
+</html>
