@@ -14,6 +14,7 @@ npm install -g -s --prefix "$T/npm" "$D/claude-multi-desktop-$v.tgz"
 pkgutil --expand-full "$D/claude-multi-desktop-$v.pkg" "$T/pkg"
 M="$(hdiutil attach -nobrowse -readonly "$D/claude-multi-desktop-$v.dmg" | tail -1 | cut -f3)"
 codesign --verify --deep --strict "$M/Claude Multi Desktop.app"
+grep -q "Open Anyway" "$M/If macOS blocks the app.txt"
 
 export HOME="$T/home" CMD_APPS_DIR="$T/apps" CLAUDE_APP="$T/Claude.app"
 mkdir -p "$HOME" "$CLAUDE_APP/Contents/MacOS"

@@ -26,7 +26,7 @@
   "operatingSystem": "macOS",
   "url": "https://jackson-cmd.github.io/claude-multi-desktop/",
   "downloadUrl": "https://github.com/jackson-cmd/claude-multi-desktop/releases/latest",
-  "softwareVersion": "0.1.1",
+  "softwareVersion": "0.1.2",
   "license": "https://opensource.org/licenses/MIT",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -91,7 +91,7 @@ claude-multi-desktop add Work            # launcher "Claude Work" with its own s
 claude-multi-desktop open Work           # second window: sign in with your other account
 claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
   <p>The launchers go to <code>~/Applications</code>, so Spotlight, Launchpad and the Dock find them. Drag them to the Dock and click whichever account you want; they can all stay open side by side.</p>
-  <p>No Homebrew, or would you rather not use Terminal? <a href="#install">Install</a> lists a Mac installer, a disk image with a double-click app, npm, PyPI and a Claude Code plugin.</p>
+  <p>No Homebrew, or would you rather not use Terminal? <a href="#install">Install</a> lists a Mac installer, a disk image with a double-click app and a Claude Code plugin.</p>
 
   <h2 id="install">Install</h2>
   <p>Homebrew is the shortest way. The others are for people without Homebrew, or who would rather not use Terminal.</p>
@@ -100,28 +100,32 @@ claude-multi-desktop add Main --default  # launcher for the account you already 
 <pre><code>brew install jackson-cmd/tap/claude-multi-desktop</code></pre>
 
   <h3>Mac installer (.pkg)</h3>
-  <p>Download <code>claude-multi-desktop-0.1.1.pkg</code> from the <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">latest release</a> and open it. It installs the <code>claude-multi-desktop</code> command to <code>/usr/local/bin</code> and the double-click app <strong>Claude Multi Desktop</strong> to <code>/Applications</code>.</p>
-  <p>The installer is not signed with an Apple Developer ID, so macOS blocks the first open:</p>
-  <ul>
-    <li><strong>macOS 15 and later:</strong> open System Settings → Privacy &amp; Security and click <strong>Open Anyway</strong>.</li>
-    <li><strong>macOS 14 and earlier:</strong> right-click the file and choose <strong>Open</strong>.</li>
-  </ul>
+  <p>Download the <code>.pkg</code> file from the <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">latest release</a> and open it. It installs the <code>claude-multi-desktop</code> command to <code>/usr/local/bin</code> and the double-click app <strong>Claude Multi Desktop</strong> to <code>/Applications</code>.</p>
+  <p>The installer is not signed with an Apple Developer ID, so macOS blocks it the first time you open it: see <a href="#if-macos-blocks">If macOS blocks the app or installer</a>.</p>
   <p>To uninstall it:</p>
 <pre><code>sudo rm /usr/local/bin/claude-multi-desktop
 sudo rm -rf "/Applications/Claude Multi Desktop.app"
 sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop</code></pre>
 
   <h3>Disk image (.dmg)</h3>
-  <p>Download <code>claude-multi-desktop-0.1.1.dmg</code> from the same <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">release page</a>, drag <strong>Claude Multi Desktop</strong> to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.</p>
-  <p>The app is not signed with an Apple Developer ID either, so the first open is blocked in the same way: on macOS 15 and later use System Settings → Privacy &amp; Security → <strong>Open Anyway</strong>; on macOS 14 and earlier right-click the app and choose <strong>Open</strong>.</p>
+  <p>Download the <code>.dmg</code> file from the same <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">release page</a>, drag <strong>Claude Multi Desktop</strong> to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.</p>
+  <p>The app is not signed with an Apple Developer ID either: see <a href="#if-macos-blocks">If macOS blocks the app or installer</a>. The disk image carries the same steps as a text file next to the app.</p>
 
-  <h3>npm</h3>
-<pre><code>npx claude-multi-desktop add Work     # run it without installing
-npm install -g claude-multi-desktop   # or install the command</code></pre>
+  <h3 id="if-macos-blocks">If macOS blocks the app or installer</h3>
+  <p>If macOS says <em>“Apple could not verify ‘Claude Multi Desktop’ is free of malware”</em>: the app and the installer are not signed with an Apple Developer ID, so macOS blocks them the first time you open them. The code is open source, and you only need to allow it once.</p>
+  <p><strong>macOS 15 (Sequoia) and later</strong></p>
+  <ol>
+    <li>Double-click the app (or the <code>.pkg</code>) once. When macOS blocks it, click <strong>Done</strong>.</li>
+    <li>Open <strong>System Settings → Privacy &amp; Security</strong> and scroll down to the <strong>Security</strong> section. You will see <em>“‘Claude Multi Desktop’ was blocked to protect your Mac.”</em> (for the installer, its file name). Click <strong>Open Anyway</strong>.</li>
+    <li>Enter your Mac login password (or use Touch ID). If macOS asks once more, click <strong>Open Anyway</strong> again. From then on it opens normally.</li>
+  </ol>
+  <p><strong>macOS 14 (Sonoma) and earlier</strong></p>
+  <ol>
+    <li>Right-click (or Control-click) the app (or the <code>.pkg</code>) and choose <strong>Open</strong>.</li>
+    <li>Click <strong>Open</strong> in the dialog. You only do this once.</li>
+  </ol>
+  <p>Want no warning at all? Install with Homebrew instead: <code>brew install jackson-cmd/tap/claude-multi-desktop</code>.</p>
 
-  <h3>PyPI</h3>
-<pre><code>pipx install claude-multi-desktop     # install the command
-uvx claude-multi-desktop add Work     # or run it without installing</code></pre>
 
   <h3>Claude Code plugin</h3>
 <pre><code>/plugin marketplace add jackson-cmd/claude-multi-desktop

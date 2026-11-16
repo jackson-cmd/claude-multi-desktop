@@ -9,7 +9,7 @@
     {
       "name": "account-handoff",
       "description": "Hand a task or a question to a Claude Code session running in another Claude Desktop account on this Mac, and relay its reply",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "claude-multi-desktop contributors",
         "url": "https://github.com/jackson-cmd/claude-multi-desktop"
