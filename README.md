@@ -4,9 +4,9 @@
 
 One bash script · no dependencies · never modifies Claude.app · macOS
 
-> **Unofficial, for legitimate use only.** Use it with accounts you are entitled to use, such as a work account and a personal account. Do not use it to get around usage limits or to share accounts. See the [disclaimer](#disclaimer).
+> **Unofficial, for legitimate use only.** It is built for one person with a personal and a work Claude account (see [who it is for](#who-it-is-for)). Do not use it to get around usage limits or to share accounts; using several accounts to abuse usage quotas is not supported. See the [disclaimer](#disclaimer).
 
-[Website](https://jackson-cmd.github.io/claude-multi-desktop/) · [Quick start](#quick-start) · [Install](#install) · [Icons and names](#icons-and-names) · [Sessions talk across accounts](#sessions-talk-across-accounts) · [What is shared](#what-is-shared-and-what-is-not) · [FAQ](#faq) · [Changelog](https://github.com/jackson-cmd/claude-multi-desktop/blob/main/CHANGELOG.md)
+[Website](https://jackson-cmd.github.io/claude-multi-desktop/) · [Who it is for](#who-it-is-for) · [Quick start](#quick-start) · [Install](#install) · [Icons and names](#icons-and-names) · [Sessions talk across accounts](#sessions-talk-across-accounts) · [What is shared](#what-is-shared-and-what-is-not) · [FAQ](#faq) · [Changelog](https://github.com/jackson-cmd/claude-multi-desktop/blob/main/CHANGELOG.md)
 
 [![tests](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jackson-cmd/claude-multi-desktop/blob/main/LICENSE)
@@ -31,6 +31,19 @@ Claude Desktop runs one account at a time. If you open it again, the same window
    ```
 
 3. **No dependencies, nothing patched.** It is one bash script you can read in five minutes. Each launcher is a small app that opens the Claude.app you already have with Electron's public `--user-data-dir` flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. When Claude updates, every account gets the update, and uninstalling means deleting the launcher.
+
+## Who it is for
+
+claude-multi-desktop was designed for one person who has two Claude accounts of their own, a personal one and a work one, that cannot be opened in the same window. That happens in two cases:
+
+- **Your personal and work accounts use different email addresses.** Each email is its own sign-in, and Claude Desktop holds one sign-in at a time, so without this tool you sign out of one account to use the other.
+- **Your work account came before your personal one.** For example, your employer set up a seat under your work email before you had a personal account, and the personal account you added later is a separate sign-in.
+
+In both cases the tool gives each account its own window, so both stay signed in, while Claude Code keeps one setup for you as a single user.
+
+**Other uses.** The launchers work for any account folder, so the tool can technically run other kinds of profiles too. That is not what it was built for. If you use it outside the two cases above, you do so at your own risk, and the authors accept no responsibility for the consequences.
+
+**Usage quotas.** Running several accounts to farm, pool or stretch usage limits is not supported. Issues and pull requests that ask for help with that will be closed.
 
 ## Quick start
 
@@ -308,9 +321,11 @@ No. It is an independent open-source project and is not affiliated with or endor
 
 claude-multi-desktop is an independent open-source project. It is not affiliated with, endorsed by or supported by Anthropic. "Claude" and "Claude Desktop" are trademarks of Anthropic.
 
-**Acceptable use.** Use this tool only for legitimate purposes and only with Claude accounts you are entitled to use, for example to keep a work account and a personal account open side by side. Do not use it:
+**Intended use.** The tool is built for one person who keeps a personal and a work Claude account open side by side, as described in [Who it is for](#who-it-is-for). Any other use, such as running other kinds of profiles, is outside its intended use and entirely at your own risk.
 
-- to get around, pool or stretch usage limits, rate limits or plan restrictions, for example by switching to another account to keep working after one has reached its limit;
+**Acceptable use.** Use this tool only for legitimate purposes and only with Claude accounts you are entitled to use. Do not use it:
+
+- to abuse usage quotas, that is, to get around, farm, pool or stretch usage limits, rate limits or plan restrictions, for example by switching to another account to keep working after one has reached its limit. This project does not support such use;
 - to share accounts or sign-ins with other people, or to use accounts that are not yours;
 - for anything that Anthropic's Consumer Terms, Commercial Terms or Usage Policy, or your employer's rules, do not allow.
 
