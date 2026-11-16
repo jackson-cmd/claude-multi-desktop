@@ -4,6 +4,8 @@
 
 One bash script · nothing to install · never modifies Claude.app · macOS
 
+> **Unofficial, for legitimate use only.** Use it with accounts you are entitled to use, such as a work account and a personal account. Do not use it to get around usage limits or to share accounts. See the [disclaimer](#disclaimer).
+
 [Website](https://jackson-cmd.github.io/claude-multi-desktop/) · [Quick start](#quick-start) · [Sessions talk across accounts](#sessions-talk-across-accounts) · [What is shared](#what-is-shared-and-what-is-not) · [FAQ](#faq)
 
 [![tests](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/jackson-cmd/claude-multi-desktop/actions/workflows/ci.yml)
@@ -163,7 +165,19 @@ Run `claude-multi-desktop remove Work` to delete the launcher, or `remove Work -
 
 ### Is this an official Anthropic tool?
 
-No. It is an independent open-source project and is not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic. Each account you sign in to remains subject to Anthropic's terms.
+No. It is an independent open-source project and is not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic. Each account you sign in to remains subject to Anthropic's terms; see the [disclaimer](#disclaimer).
+
+## Disclaimer
+
+claude-multi-desktop is an independent open-source project. It is not affiliated with, endorsed by or supported by Anthropic. "Claude" and "Claude Desktop" are trademarks of Anthropic.
+
+**Acceptable use.** Use this tool only for legitimate purposes and only with Claude accounts you are entitled to use, for example to keep a work account and a personal account open side by side. Do not use it:
+
+- to get around, pool or stretch usage limits, rate limits or plan restrictions, for example by switching to another account to keep working after one has reached its limit;
+- to share accounts or sign-ins with other people, or to use accounts that are not yours;
+- for anything that Anthropic's Consumer Terms, Commercial Terms or Usage Policy, or your employer's rules, do not allow.
+
+You are responsible for how you use your accounts. Anthropic may restrict or close accounts that break its terms, and the authors of this project accept no responsibility for that or for any other consequence of using it. The software is provided "as is", without warranty of any kind (see [LICENSE](LICENSE)).
 
 ## Tests
 

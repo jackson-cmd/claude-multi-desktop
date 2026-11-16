@@ -1,6 +1,6 @@
 # claude-multi-desktop
 
-> Free, open-source bash script (MIT) that runs two or more Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in and chats; all windows share one Claude Code setup (~/.claude), so skills, CLAUDE.md, memory and MCP servers are the same in every account, and Claude Code sessions in different accounts can find and message each other with ListAgents and SendMessage. It never copies, patches or re-signs Claude.app; launchers use Electron's public --user-data-dir flag. Not affiliated with Anthropic.
+> Free, open-source bash script (MIT) that runs two or more Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in and chats; all windows share one Claude Code setup (~/.claude), so skills, CLAUDE.md, memory and MCP servers are the same in every account, and Claude Code sessions in different accounts can find and message each other with ListAgents and SendMessage. It never copies, patches or re-signs Claude.app; launchers use Electron's public --user-data-dir flag. Not affiliated with Anthropic. For legitimate use only, with accounts the user is entitled to use; not for getting around usage limits or sharing accounts.
 
 ## Docs
 

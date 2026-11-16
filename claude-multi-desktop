@@ -31,6 +31,9 @@ Launchers go to ~/Applications (set CMD_APPS_DIR to change it). Each new account
 sign-in and chats in ~/Library/Application Support/Claude-NAME. Claude Code in every account
 reads the same ~/.claude, so skills, CLAUDE.md, memory and MCP servers are shared and sessions
 in different accounts can message each other.
+
+Unofficial; not affiliated with Anthropic. For legitimate use only, with accounts you are entitled
+to use. Do not use it to get around usage limits or to share accounts.
 EOF
 }
 
