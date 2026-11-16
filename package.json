@@ -1,0 +1,34 @@
+{
+  "name": "claude-multi-desktop",
+  "version": "0.1.1",
+  "description": "Run multiple Claude Desktop accounts at once on a Mac, sharing one Claude Code setup",
+  "keywords": [
+    "claude",
+    "claude-desktop",
+    "claude-code",
+    "multiple-accounts",
+    "multi-account",
+    "profiles",
+    "launcher",
+    "macos"
+  ],
+  "homepage": "https://jackson-cmd.github.io/claude-multi-desktop/",
+  "bugs": {
+    "url": "https://github.com/jackson-cmd/claude-multi-desktop/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackson-cmd/claude-multi-desktop.git"
+  },
+  "license": "MIT",
+  "author": "claude-multi-desktop contributors (https://github.com/jackson-cmd/claude-multi-desktop)",
+  "bin": {
+    "claude-multi-desktop": "claude-multi-desktop"
+  },
+  "files": [
+    "claude-multi-desktop"
+  ],
+  "os": [
+    "darwin"
+  ]
+}

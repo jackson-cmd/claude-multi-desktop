@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How to use two Claude accounts at the same time on a Mac | claude-multi-desktop</title>
-<meta name="description" content="Step by step: open a work and a personal Claude Desktop account side by side on macOS, each with its own sign-in, using a free open-source launcher. No copy of Claude.app, nothing to install.">
+<meta name="description" content="Step by step: open a work and a personal Claude Desktop account side by side on macOS, each with its own sign-in, using a free open-source launcher. No copy of Claude.app, no dependencies.">
 <link rel="canonical" href="https://jackson-cmd.github.io/claude-multi-desktop/guides/two-claude-accounts-on-mac.html">
 <link rel="stylesheet" href="../style.css">
 <meta property="og:type" content="article">
@@ -45,25 +45,24 @@
   <p>Claude Desktop is an Electron app, and Electron lets one copy run per data folder. Your sign-in, chats and settings live in <code>~/Library/Application Support/Claude</code>. When you open Claude a second time, macOS finds the copy that already uses that folder and brings it to the front.</p>
   <p>If a second copy uses a different folder, it runs on its own with its own sign-in. The <code>--user-data-dir</code> flag sets that folder, and <code>open -n</code> asks macOS for a new copy. claude-multi-desktop makes small launcher apps that do exactly this, so you never type the flags yourself.</p>
 
-  <h2>Step 1: get the script</h2>
-<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
-cd claude-multi-desktop</code></pre>
-  <p>It is one bash script with no dependencies, and you can read all of it before running it.</p>
+  <h2>Step 1: install it</h2>
+<pre><code>brew install jackson-cmd/tap/claude-multi-desktop</code></pre>
+  <p>It is one bash script with no dependencies, and you can read all of it before running it. No Homebrew, or would you rather not use Terminal? <a href="../#install">Other ways to install</a> include a Mac installer, a disk image with a double-click app, npm and PyPI.</p>
 
   <h2>Step 2: add your second account</h2>
-<pre><code>./claude-multi-desktop add Work</code></pre>
-  <p>This creates <code>~/Applications/Claude Work.app</code> with a coloured icon, and an empty folder <code>~/Library/Application Support/Claude-Work</code> that will hold this account's sign-in and chats.</p>
+<pre><code>claude-multi-desktop add Work</code></pre>
+  <p>This creates <code>~/Applications/Claude Work.app</code> with a coloured icon, and an empty folder <code>~/Library/Application Support/Claude-Work</code> that will hold this account's sign-in and chats. To pick the look, add <code>--color HEX</code> or <code>--icon claude</code> (your own Claude icon with a coloured letter badge); the <a href="../#icons-and-names">home page</a> has the details.</p>
 
   <h2>Step 3: open it and sign in</h2>
-<pre><code>./claude-multi-desktop open Work</code></pre>
+<pre><code>claude-multi-desktop open Work</code></pre>
   <p>A second Claude window opens with no account. Sign in with your other account. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers. You only sign in once per account.</p>
 
   <h2>Step 4: add a launcher for your first account</h2>
-<pre><code>./claude-multi-desktop add Main --default</code></pre>
+<pre><code>claude-multi-desktop add Main --default</code></pre>
   <p>While another account is open, clicking the normal Claude icon only brings that window forward. <em>Claude Main</em> always opens the account you were already using, so put both launchers in the Dock.</p>
 
   <h2>Step 5: check what is open</h2>
-<pre><code>$ ./claude-multi-desktop list
+<pre><code>$ claude-multi-desktop list
 LAUNCHER               STATE  ACCOUNT FOLDER
 Claude Main            open   ~/Library/Application Support/Claude
 Claude Work            open   ~/Library/Application Support/Claude-Work</code></pre>
@@ -73,8 +72,8 @@ Claude Work            open   ~/Library/Application Support/Claude-Work</code></
   <p>If work data must never reach a personal account, use a tool that isolates Claude Code too, such as <a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile</a>.</p>
 
   <h2>Remove an account</h2>
-<pre><code>./claude-multi-desktop remove Work                # keep its sign-in and chats
-./claude-multi-desktop remove Work --delete-data  # delete its folder too</code></pre>
+<pre><code>claude-multi-desktop remove Work                # keep its sign-in and chats
+claude-multi-desktop remove Work --delete-data  # delete its folder too</code></pre>
   <p>Your first account is never deleted by the tool.</p>
 </main>
 <footer>

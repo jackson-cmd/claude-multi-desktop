@@ -1,0 +1,30 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "multi-desktop",
+  "description": "Claude Code plugin for claude-multi-desktop: hand work between Claude Code sessions in different Claude Desktop accounts on one Mac",
+  "owner": {
+    "name": "claude-multi-desktop"
+  },
+  "plugins": [
+    {
+      "name": "account-handoff",
+      "description": "Hand a task or a question to a Claude Code session running in another Claude Desktop account on this Mac, and relay its reply",
+      "version": "0.1.1",
+      "author": {
+        "name": "claude-multi-desktop contributors",
+        "url": "https://github.com/jackson-cmd/claude-multi-desktop"
+      },
+      "source": "./plugins/account-handoff",
+      "category": "productivity",
+      "homepage": "https://jackson-cmd.github.io/claude-multi-desktop/",
+      "license": "MIT",
+      "keywords": [
+        "claude-desktop",
+        "multiple-accounts",
+        "sessions",
+        "handoff",
+        "macos"
+      ]
+    }
+  ]
+}

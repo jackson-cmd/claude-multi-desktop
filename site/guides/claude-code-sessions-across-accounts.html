@@ -46,14 +46,14 @@
   <p>Tools that give every account its own Claude Code folder keep accounts apart on purpose. That is the right choice when accounts must never meet, and this tool is for when you want them to work together.</p>
 
   <h2>Set it up</h2>
-<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
-cd claude-multi-desktop
-./claude-multi-desktop add Personal   # then open it and sign in
-./claude-multi-desktop add Main --default</code></pre>
+<pre><code>brew install jackson-cmd/tap/claude-multi-desktop
+claude-multi-desktop add Personal   # then open it and sign in
+claude-multi-desktop add Main --default</code></pre>
+  <p>Other ways to install are listed <a href="../#install">on the home page</a>.</p>
   <p>Open a session in the <strong>Code</strong> tab of each window. This was tested with Claude Code 2.1 inside Claude Desktop.</p>
 
   <h2>See every session</h2>
-<pre><code>$ ./claude-multi-desktop peers
+<pre><code>$ claude-multi-desktop peers
 ACCOUNT        STATUS SESSION
 Personal       idle   trip planning
 default        busy   paper review</code></pre>
@@ -67,6 +67,11 @@ default        busy   paper review</code></pre>
     <li>“When it replies, summarise what it chose.”</li>
   </ul>
   <p>The message arrives in the other account's session as a new turn, and that session answers with its own account, its own chat history and the same shared skills. You can draft in one account and have another account review it, or hand a long task to a session that is not busy.</p>
+
+  <h2>Hand over with the Claude Code plugin</h2>
+<pre><code>/plugin marketplace add jackson-cmd/claude-multi-desktop
+/plugin install account-handoff@multi-desktop</code></pre>
+  <p>The plugin adds one skill, <code>handoff</code> (also <code>/account-handoff:handoff</code>). It finds the right session with <code>ListAgents</code> and <code>claude-multi-desktop peers</code>, writes a short brief that stands on its own, sends it with <code>SendMessage</code> and relays the reply. It refuses to move work to another account because an account has hit a usage limit. The plugin does not install the <code>claude-multi-desktop</code> command itself; <a href="../#install">install that first</a>.</p>
 
   <h2>Things to keep in mind</h2>
   <ul>
