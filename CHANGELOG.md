@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 (2026-11-15)
+
+- Clean up.
+
 ## 0.1.2 (2026-11-15)
 
 - **Clear steps when macOS blocks the app.** The disk image now has a text file next to the app, "If macOS blocks the app.txt", with the steps to allow the unsigned app or installer on macOS 15 and later (Privacy & Security → Open Anyway) and on macOS 14 and earlier (right-click → Open). The README has the same steps.

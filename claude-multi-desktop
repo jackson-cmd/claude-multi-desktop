@@ -4,7 +4,7 @@
 # https://github.com/jackson-cmd/claude-multi-desktop  ·  MIT License  ·  not affiliated with Anthropic
 set -euo pipefail
 
-VERSION="0.1.2"
+VERSION="0.1.3"
 SUPPORT="$HOME/Library/Application Support"
 APPS_DIR="${CMD_APPS_DIR:-$HOME/Applications}"
 CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
