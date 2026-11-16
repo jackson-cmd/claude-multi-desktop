@@ -74,7 +74,8 @@ def identity_markers() -> dict[str, str]:
 
 def _public_handle_uses(text: str, handle: str, path: str = "") -> str:
     """Drop the places where a GitHub handle is public anyway: URL path segments, <handle>.github.io, noreply, the MCP
-    Registry name io.github.<handle>/<repo>, and the maintainers list of Glama's claim file (glama.json)."""
+    Registry name io.github.<handle>/<repo>, the macOS bundle and package identifier io.github.<handle>.<name>, and the
+    maintainers list of Glama's claim file (glama.json)."""
     h = re.escape(handle)
     text = re.sub(rf"(?<=/){h}(?=[/.\"')\s]|$)", "", text)
     text = re.sub(rf"(?<![\w-]){h}(?=/[\w.-])", "", text)          # an OWNER/REPO slug
@@ -82,6 +83,7 @@ def _public_handle_uses(text: str, handle: str, path: str = "") -> str:
     text = re.sub(rf"{h}\.github\.io", "", text)
     text = re.sub(rf"\+{h}@users\.noreply\.github\.com", "", text)
     text = re.sub(rf"io\.github\.{h}/", "", text)
+    text = re.sub(rf"\bio\.github\.{h}\.(?=[\w-])", "", text)       # io.github.<handle>.<name> (bundle/pkg identifier)
     if path == "glama.json" or path.endswith("/glama.json"):
         text = re.sub(r'"maintainers"\s*:\s*\[[^\]]*\]', "", text)
     return text

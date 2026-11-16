@@ -18,11 +18,32 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
-      - run: shellcheck claude-multi-desktop tests/test.sh
+      - run: shellcheck claude-multi-desktop tests/*.sh packaging/*.sh
 
   macos:
     runs-on: macos-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - run: bash tests/test.sh
+      - name: Tests, with the bash that ships with macOS
+        run: /bin/bash tests/test.sh
+      - name: Every file states the same version
+        run: bash tests/test_version.sh
+
+  package:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Build the installer, the disk image, the Python and npm packages
+        run: |
+          packaging/build.sh dist
+          uv build -o dist
+          uvx twine check --strict dist/*.whl dist/*.tar.gz
+          npm pack --pack-destination dist
+      - name: Install each one and run it (the installer for real)
+        run: packaging/smoke.sh dist --system

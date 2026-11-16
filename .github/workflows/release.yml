@@ -1,0 +1,164 @@
+name: release
+
+# When the tests pass on main and the script carries a version that has no tag yet, this drafts a GitHub release with
+# the version's CHANGELOG.md section, builds and smoke-tests the .pkg, .dmg, wheel, source archive and npm package,
+# attaches them, and publishes the release (which creates the tag vX.Y.Z). Then PyPI (trusted publishing, once the
+# repository variable PYPI_PUBLISH is "true") and npm (trusted publishing, once NPM_PUBLISH is "true"). Run it by hand
+# with the tag of a published release to upload that release to PyPI and npm again, e.g. after setting them up.
+# The Homebrew formula in jackson-cmd/homebrew-tap is bumped by hand afterwards (new tarball sha256).
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of a published release to publish to PyPI and npm again, e.g. v0.1.1"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.draft.outputs.tag }}
+      sha: ${{ steps.draft.outputs.sha }}
+      draft: ${{ steps.draft.outputs.draft }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      INPUT_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.event.workflow_run.head_sha || github.sha }}
+      - id: draft
+        run: |
+          sha=$(git rev-parse HEAD)
+          if [ -n "$INPUT_TAG" ]; then
+            [ "$(gh release view "$INPUT_TAG" --json isDraft --jq .isDraft)" = false ] || { echo "$INPUT_TAG is not a published release"; exit 1; }
+            { echo "tag=$INPUT_TAG"; echo "sha=$sha"; echo "draft=false"; } >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          version=$(sed -n 's/^VERSION="\(.*\)"$/\1/p' claude-multi-desktop)
+          tag="v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then echo "$tag exists: nothing to release"; exit 0; fi
+          packaging/release_notes.sh "$version" > notes.md
+          if [ "$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null)" = true ]; then
+            gh release edit "$tag" --target "$sha" --title "claude-multi-desktop $version" --notes-file notes.md
+          else
+            gh release create "$tag" --draft --target "$sha" --title "claude-multi-desktop $version" --notes-file notes.md
+          fi
+          { echo "tag=$tag"; echo "sha=$sha"; echo "draft=true"; } >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: draft
+    if: needs.draft.outputs.tag != ''
+    runs-on: macos-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ needs.draft.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.draft.outputs.sha }}
+      - uses: astral-sh/setup-uv@v10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Build
+        run: |
+          bash tests/test_version.sh
+          packaging/build.sh dist
+          uv build -o dist
+          uvx twine check --strict dist/*.whl dist/*.tar.gz
+          npm pack --pack-destination dist
+      - name: Install each one and run it
+        run: packaging/smoke.sh dist --system
+      - name: Attach the files to the draft
+        if: needs.draft.outputs.draft == 'true'
+        run: gh release upload "$TAG" dist/* --clobber
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm
+          path: dist/*.tgz
+
+  publish:
+    needs: [draft, build]
+    if: needs.draft.outputs.draft == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Publish the release (creates the tag)
+        run: gh release edit "${{ needs.draft.outputs.tag }}" -R "$GITHUB_REPOSITORY" --draft=false --latest
+
+  pypi:
+    needs: [draft, build, publish]
+    if: always() && needs.build.result == 'success' && needs.publish.result != 'failure' && vars.PYPI_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/claude-multi-desktop/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: python
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  npm:
+    needs: [draft, build, publish]
+    if: always() && needs.build.result == 'success' && needs.publish.result != 'failure' && vars.NPM_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/claude-multi-desktop
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm
+          path: dist
+      - name: Publish with trusted publishing (skipped when this version is already on npm)
+        run: |
+          npm install -g npm@latest
+          v=${{ needs.draft.outputs.tag }}; v=${v#v}
+          if npm view "claude-multi-desktop@$v" version >/dev/null 2>&1; then echo "$v is already on npm"; exit 0; fi
+          npm publish "dist/claude-multi-desktop-$v.tgz" --access public
