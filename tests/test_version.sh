@@ -4,6 +4,8 @@
 #   bash tests/test_version.sh https://raw.githubusercontent.com/jackson-cmd/homebrew-tap/main/Formula/claude-multi-desktop.rb
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+formula="${1:-}"
+if [ -n "$formula" ] && [ -f "$formula" ]; then formula="$(cd "$(dirname "$formula")" && pwd)/$(basename "$formula")"; fi
 cd "$ROOT"
 v="$(sed -n 's/^VERSION="\(.*\)"$/\1/p' claude-multi-desktop)"
 fail=0
@@ -18,8 +20,8 @@ check "plugin.json" "$(json plugins/account-handoff/.claude-plugin/plugin.json '
 check "marketplace.json" "$(json .claude-plugin/marketplace.json 'd["plugins"][0]["version"]')"
 check "CHANGELOG.md newest section" "$(sed -n 's/^## \([0-9][^ ]*\).*/\1/p' CHANGELOG.md | head -1)"
 check "site softwareVersion" "$(sed -n 's/.*"softwareVersion": "\([^"]*\)".*/\1/p' site/index.html)"
-if [ -n "${1:-}" ]; then
-  if [ -f "$1" ]; then formula="$(cat "$1")"; else formula="$(curl -fsSL "$1")"; fi
-  check "Homebrew formula" "$(sed -n 's|.*/archive/refs/tags/v\([^"]*\)\.tar\.gz".*|\1|p' <<< "$formula")"
+if [ -n "$formula" ]; then
+  if [ -f "$formula" ]; then text="$(cat "$formula")"; else text="$(curl -fsSL "$formula")"; fi
+  check "Homebrew formula" "$(sed -n 's|.*/archive/refs/tags/v\([^"]*\)\.tar\.gz".*|\1|p' <<< "$text")"
 fi
 [ "$fail" -eq 0 ]
