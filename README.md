@@ -1,6 +1,6 @@
 # claude-multi-desktop
 
-**Run two or more Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in, and all of them share one Claude Code setup, so a session in one account can send work to a session in another.**
+**Run multiple Claude Desktop accounts at the same time on one Mac. Each window has its own sign-in, and all of them share one Claude Code setup, so a session in one account can send work to a session in another.**
 
 One bash script · nothing to install · never modifies Claude.app · macOS
 
