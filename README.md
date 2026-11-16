@@ -37,17 +37,18 @@ Claude Desktop runs one account at a time. If you open it again, the same window
 You need macOS and [Claude Desktop](https://claude.ai/download) in `/Applications`.
 
 ```bash
-git clone https://github.com/jackson-cmd/claude-multi-desktop.git
-cd claude-multi-desktop
-./claude-multi-desktop add Work          # a launcher called "Claude Work" with its own sign-in
-./claude-multi-desktop open Work         # opens a second Claude window; sign in with your other account
-./claude-multi-desktop add Main --default  # a launcher for the account you already use
+brew install jackson-cmd/tap/claude-multi-desktop
+claude-multi-desktop add Work            # a launcher called "Claude Work" with its own sign-in
+claude-multi-desktop open Work           # opens a second Claude window; sign in with your other account
+claude-multi-desktop add Main --default  # a launcher for the account you already use
 ```
+
+No Homebrew? Clone the repository and run the script directly: `git clone https://github.com/jackson-cmd/claude-multi-desktop.git && cd claude-multi-desktop && ./claude-multi-desktop add Work`.
 
 That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
 
 <details>
-<summary>Put the command on your PATH (optional)</summary>
+<summary>Install without Homebrew or git</summary>
 
 ```bash
 mkdir -p ~/.local/bin

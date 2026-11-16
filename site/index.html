@@ -80,11 +80,11 @@
 
   <h2 id="quick-start">Quick start</h2>
   <p>You need macOS and Claude Desktop in <code>/Applications</code>.</p>
-<pre><code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git
-cd claude-multi-desktop
-./claude-multi-desktop add Work            # launcher "Claude Work" with its own sign-in
-./claude-multi-desktop open Work           # second window: sign in with your other account
-./claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
+<pre><code>brew install jackson-cmd/tap/claude-multi-desktop
+claude-multi-desktop add Work            # launcher "Claude Work" with its own sign-in
+claude-multi-desktop open Work           # second window: sign in with your other account
+claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
+  <p>No Homebrew? <code>git clone https://github.com/jackson-cmd/claude-multi-desktop.git</code> and run <code>./claude-multi-desktop</code> from the folder.</p>
   <p>The launchers go to <code>~/Applications</code>, so Spotlight, Launchpad and the Dock find them. Drag them to the Dock and click whichever account you want; they can all stay open side by side.</p>
 
   <h2>What is shared and what is not</h2>
