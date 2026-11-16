@@ -151,7 +151,8 @@ cd claude-multi-desktop
 
   <h2 id="sign-in-and-updates">Sign-in and updates</h2>
   <h3>Signing in</h3>
-  <p>Each account signs in on its own, once. Open its launcher (or run <code>claude-multi-desktop open NAME</code>), click <strong>Log in</strong> in that window and finish in the browser. That window stays signed in from then on, and your other accounts are not touched. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.</p>
+  <p>Each account signs in on its own, once. Open its launcher (or run <code>claude-multi-desktop open NAME</code>), click <strong>Log in</strong> in that window and finish in the browser. Your other accounts are not touched.</p>
+  <p><strong>After that you never sign in again.</strong> Closing the window, restarting your Mac, updating Claude Desktop, renaming the launcher or updating claude-multi-desktop all keep the sign-in, because it is saved in that account's own folder (<code>~/Library/Application Support/Claude-NAME</code>). Only <code>remove NAME --delete-data</code> deletes it. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.</p>
   <h3>Updating Claude Desktop</h3>
   <p>Every account runs the same Claude.app, so one update covers all of them. Before you update, quit Claude in <strong>every</strong> account: while another account is still open, the update may not install, or the open windows may misbehave.</p>
   <ol>

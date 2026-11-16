@@ -140,13 +140,15 @@ cd claude-multi-desktop
 4. **Add a launcher for your first account:** `claude-multi-desktop add Main --default`. While another account is open, clicking the normal Claude icon only brings that window forward. **Claude Main** always opens your first account.
 5. **Add as many as you need:** `add Personal`, `add "Client A"`, and so on. Pick a colour with `--color 2E9D6A` or another look with `--icon` (see [Icons and names](#icons-and-names)).
 
-> **Signing in.** Each account signs in once, in its own window. See [Sign-in and updates](#sign-in-and-updates), which also says how to update Claude Desktop when several accounts are set up.
+> **Signing in.** Each account signs in once, in its own window, and never again after that. See [Sign-in and updates](#sign-in-and-updates), which also says how to update Claude Desktop when several accounts are set up.
 
 ## Sign-in and updates
 
 ### Signing in
 
-Each account signs in on its own, once. Open its launcher (or run `claude-multi-desktop open NAME`), click **Log in** in that window and finish in the browser. That window stays signed in from then on, and your other accounts are not touched. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.
+Each account signs in on its own, once. Open its launcher (or run `claude-multi-desktop open NAME`), click **Log in** in that window and finish in the browser. Your other accounts are not touched.
+
+**After that you never sign in again.** Closing the window, restarting your Mac, updating Claude Desktop, renaming the launcher or updating claude-multi-desktop all keep the sign-in, because it is saved in that account's own folder (`~/Library/Application Support/Claude-NAME`). Only `remove NAME --delete-data` deletes it. If the browser sends the sign-in back to the wrong window, quit the other Claude windows, sign in, then reopen them from their launchers.
 
 ### Updating Claude Desktop
 
