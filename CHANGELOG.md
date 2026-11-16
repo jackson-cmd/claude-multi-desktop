@@ -3,7 +3,7 @@
 ## 0.1.2 (2026-11-15)
 
 - **Clear steps when macOS blocks the app.** The disk image now has a text file next to the app, "If macOS blocks the app.txt", with the steps to allow the unsigned app or installer on macOS 15 and later (Privacy & Security → Open Anyway) and on macOS 14 and earlier (right-click → Open). The README has the same steps.
-- The README and the website list only the install methods that are live: Homebrew, the installer, the disk image, the Claude Code plugin, curl and git. npm and PyPI packages are ready and will be listed once they are published.
+- **npm.** `npx claude-multi-desktop add Work` or `npm install -g claude-multi-desktop`. The README and the website list only the install methods that work: Homebrew, the installer, the disk image, npm, the Claude Code plugin, curl and git.
 
 ## 0.1.1 (2026-11-15)
 

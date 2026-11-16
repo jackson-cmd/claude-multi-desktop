@@ -45,7 +45,7 @@ claude-multi-desktop add Main --default  # a launcher for the account you alread
 
 That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
 
-No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app and a Claude Code plugin.
+No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm and a Claude Code plugin.
 
 ## Install
 
@@ -93,6 +93,13 @@ If macOS says *"Apple could not verify 'Claude Multi Desktop' is free of malware
 2. Click **Open** in the dialog. You only do this once.
 
 Want no warning at all? Install with Homebrew instead: `brew install jackson-cmd/tap/claude-multi-desktop`.
+
+### npm
+
+```bash
+npx claude-multi-desktop add Work     # run it without installing
+npm install -g claude-multi-desktop   # or install the command
+```
 
 ### Claude Code plugin
 

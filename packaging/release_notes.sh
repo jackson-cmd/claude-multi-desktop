@@ -14,6 +14,7 @@ brew install jackson-cmd/tap/claude-multi-desktop
 
 - **Mac installer:** \`claude-multi-desktop-$v.pkg\` below installs the command and the Claude Multi Desktop app.
 - **Disk image:** \`claude-multi-desktop-$v.dmg\` below; drag Claude Multi Desktop to Applications and double-click it.
+- **npm:** \`npx claude-multi-desktop add Work\`
 - **Claude Code plugin:** \`/plugin marketplace add jackson-cmd/claude-multi-desktop\`, then \`/plugin install account-handoff@multi-desktop\`
 
 ### If macOS blocks the app or installer
