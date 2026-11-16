@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "claude-multi-desktop"
+version = "0.1.1"
+description = "Run multiple Claude Desktop accounts at once on a Mac, sharing one Claude Code setup"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.8"
+authors = [{ name = "claude-multi-desktop contributors" }]
+keywords = ["claude", "claude-desktop", "claude-code", "multiple-accounts", "profiles", "launcher", "macos"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Environment :: MacOS X",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Unix Shell",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://jackson-cmd.github.io/claude-multi-desktop/"
+Source = "https://github.com/jackson-cmd/claude-multi-desktop"
+Issues = "https://github.com/jackson-cmd/claude-multi-desktop/issues"
+Changelog = "https://github.com/jackson-cmd/claude-multi-desktop/blob/main/CHANGELOG.md"
+
+[project.scripts]
+claude-multi-desktop = "claude_multi_desktop:main"
+
+# The wheel is a thin wrapper: the bash script at the repository root is copied in and run with /bin/bash.
+[tool.hatch.build.targets.wheel]
+packages = ["packaging/python/claude_multi_desktop"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"claude-multi-desktop" = "claude_multi_desktop/claude-multi-desktop"
+
+[tool.hatch.build.targets.sdist]
+include = ["claude-multi-desktop", "packaging/python", "README.md", "LICENSE", "CHANGELOG.md"]

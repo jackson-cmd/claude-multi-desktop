@@ -1,0 +1,20 @@
+{
+  "name": "account-handoff",
+  "version": "0.1.1",
+  "description": "Hand a task or a question to a Claude Code session running in another Claude Desktop account on this Mac, and relay its reply",
+  "author": {
+    "name": "claude-multi-desktop contributors",
+    "url": "https://github.com/jackson-cmd/claude-multi-desktop"
+  },
+  "homepage": "https://jackson-cmd.github.io/claude-multi-desktop/",
+  "repository": "https://github.com/jackson-cmd/claude-multi-desktop",
+  "license": "MIT",
+  "keywords": [
+    "claude-desktop",
+    "multiple-accounts",
+    "sessions",
+    "handoff",
+    "macos"
+  ],
+  "icon": ".claude-plugin/icon.png"
+}

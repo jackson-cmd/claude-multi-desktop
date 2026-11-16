@@ -1,2 +1,8 @@
 .DS_Store
 *.app/
+dist/
+build/
+node_modules/
+*.tgz
+__pycache__/
+*.egg-info/

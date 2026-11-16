@@ -4,12 +4,13 @@
 # https://github.com/jackson-cmd/claude-multi-desktop  ·  MIT License  ·  not affiliated with Anthropic
 set -euo pipefail
 
-VERSION="0.1.0"
+VERSION="0.1.1"
 SUPPORT="$HOME/Library/Application Support"
 APPS_DIR="${CMD_APPS_DIR:-$HOME/Applications}"
 CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 MARKER="# claude-multi-desktop launcher"
 PALETTE=(3B6FD8 2E9D6A 7A5AE0 1F9AA8 D2504B C98A12 C8508A 5C6470)
+PLISTBUDDY=/usr/libexec/PlistBuddy
 
 die() { printf 'claude-multi-desktop: %s\n' "$*" >&2; exit 1; }
 say() { printf '%s\n' "$*"; }
@@ -19,13 +20,24 @@ usage() {
 claude-multi-desktop: run several Claude Desktop accounts side by side on one Mac.
 
 Usage:
-  claude-multi-desktop add NAME [--color HEX]   Make a launcher "Claude NAME" with its own sign-in
-  claude-multi-desktop add NAME --default       Make a launcher for the account you already use
-  claude-multi-desktop list                     Show your launchers and which are open
-  claude-multi-desktop open NAME                Open that account's window
-  claude-multi-desktop peers                    Show Claude Code sessions running in every account
+  claude-multi-desktop add NAME [--icon ICON] [--color HEX]
+                                    Make a launcher "Claude NAME" with its own sign-in
+  claude-multi-desktop add NAME --default
+                                    Make a launcher for the account you already use
+  claude-multi-desktop icon NAME [--icon ICON] [--color HEX]
+                                    Give a launcher a new icon or colour
+  claude-multi-desktop rename NAME NEW
+                                    Rename a launcher; its sign-in and chats stay
+  claude-multi-desktop list         Show your launchers and which are open
+  claude-multi-desktop open NAME    Open that account's window
+  claude-multi-desktop peers        Show Claude Code sessions running in every account
   claude-multi-desktop remove NAME [--delete-data]
   claude-multi-desktop version | help
+
+ICON is one of:
+  letter          a coloured square with the first letter of the name (the default)
+  claude          your own Claude icon with a coloured letter badge, drawn on this Mac
+  /path/to/image  any picture (PNG, JPEG, HEIC, ICNS, ...)
 
 Launchers go to ~/Applications (set CMD_APPS_DIR to change it). Each new account keeps its
 sign-in and chats in ~/Library/Application Support/Claude-NAME. Claude Code in every account
@@ -73,23 +85,46 @@ is_open() { # true when a Claude process runs with this account folder
   [ "$1" = "$SUPPORT/Claude" ] && grep -Eq '/Claude\.app/Contents/MacOS/Claude$' <<< "$procs"
 }
 
-make_icon() { # LETTER HEX OUT.icns ; draws a rounded square with a letter, no Anthropic artwork
+# Draw the launcher icon. STYLE is letter, claude or image; SRC is Claude.app (claude) or the picture (image).
+# Only the picture you choose or the Claude.app on this Mac is read; this tool ships no Anthropic artwork.
+make_icon() { # STYLE LETTER HEX OUT.icns [SRC]
   local tmp; tmp="$(mktemp -d)"
-  osascript -l JavaScript - "$1" "$2" "$tmp/icon.png" >/dev/null 2>&1 <<'JXA' || true
+  osascript -l JavaScript - "$1" "$2" "$3" "$tmp/icon.png" "${5:-}" >/dev/null 2>&1 <<'JXA' || true
 ObjC.import('AppKit');
 function run(argv) {
-  const letter = argv[0], n = parseInt(argv[1], 16), out = argv[2], size = 1024;
+  const style = argv[0], letter = argv[1], n = parseInt(argv[2], 16), out = argv[3], src = argv[4], size = 1024;
+  const color = $.NSColor.colorWithSRGBRedGreenBlueAlpha(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1);
+  let picture = null;
+  if (style === 'claude') picture = $.NSWorkspace.sharedWorkspace.iconForFile(src);
+  if (style === 'image') picture = $.NSImage.alloc.initWithContentsOfFile(src);
+  if (style !== 'letter' && (!picture || picture.isNil() || picture.size.width <= 0)) return;
   const rep = $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel(
     null, size, size, 8, 4, true, false, $.NSDeviceRGBColorSpace, 0, 0);
   $.NSGraphicsContext.saveGraphicsState;
   $.NSGraphicsContext.setCurrentContext($.NSGraphicsContext.graphicsContextWithBitmapImageRep(rep));
-  $.NSColor.colorWithSRGBRedGreenBlueAlpha(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255, 1).setFill;
-  $.NSBezierPath.bezierPathWithRoundedRectXRadiusYRadius($.NSMakeRect(100, 100, 824, 824), 185, 185).fill;
-  const attrs = $.NSMutableDictionary.dictionary;
-  attrs.setObjectForKey($.NSFont.boldSystemFontOfSize(500), $('NSFont'));
-  attrs.setObjectForKey($.NSColor.whiteColor, $('NSColor'));
-  const s = $.NSString.alloc.initWithString(letter), sz = s.sizeWithAttributes(attrs);
-  s.drawAtPointWithAttributes($.NSMakePoint((size - sz.width) / 2, (size - sz.height) / 2), attrs);
+  const drawLetter = (fontSize, cx, cy) => {
+    const attrs = $.NSMutableDictionary.dictionary;
+    attrs.setObjectForKey($.NSFont.boldSystemFontOfSize(fontSize), $('NSFont'));
+    attrs.setObjectForKey($.NSColor.whiteColor, $('NSColor'));
+    const s = $.NSString.alloc.initWithString(letter), sz = s.sizeWithAttributes(attrs);
+    s.drawAtPointWithAttributes($.NSMakePoint(cx - sz.width / 2, cy - sz.height / 2), attrs);
+  };
+  if (style === 'letter') {
+    color.setFill;
+    $.NSBezierPath.bezierPathWithRoundedRectXRadiusYRadius($.NSMakeRect(100, 100, 824, 824), 185, 185).fill;
+    drawLetter(500, size / 2, size / 2);
+  } else {
+    const w = picture.size.width, h = picture.size.height, scale = (style === 'claude' ? size : 824) / Math.max(w, h);
+    const dw = w * scale, dh = h * scale;
+    picture.drawInRectFromRectOperationFraction($.NSMakeRect((size - dw) / 2, (size - dh) / 2, dw, dh), $.NSMakeRect(0, 0, 0, 0), 2, 1);
+    if (style === 'claude') { // a letter badge in the lower right corner, so each account is easy to tell apart
+      $.NSColor.whiteColor.setFill;
+      $.NSBezierPath.bezierPathWithOvalInRect($.NSMakeRect(566, 46, 420, 420)).fill;
+      color.setFill;
+      $.NSBezierPath.bezierPathWithOvalInRect($.NSMakeRect(588, 68, 376, 376)).fill;
+      drawLetter(250, 776, 256);
+    }
+  }
   $.NSGraphicsContext.restoreGraphicsState;
   rep.representationUsingTypeProperties(4 /* PNG */, $()).writeToFileAtomically(out, true);
 }
@@ -100,33 +135,91 @@ JXA
       sips -z "$sz" "$sz" "$tmp/icon.png" --out "$tmp/icon.iconset/icon_${sz}x${sz}.png" >/dev/null 2>&1 || true
       sips -z $((sz * 2)) $((sz * 2)) "$tmp/icon.png" --out "$tmp/icon.iconset/icon_${sz}x${sz}@2x.png" >/dev/null 2>&1 || true
     done
-    iconutil -c icns "$tmp/icon.iconset" -o "$3" >/dev/null 2>&1 || true
+    iconutil -c icns "$tmp/icon.iconset" -o "$4" >/dev/null 2>&1 || true
   fi
   rm -rf "$tmp"
-  [ -s "$3" ]
+  [ -s "$4" ]
 }
 
+default_color() { local i; i=$(( $(printf '%s' "$1" | cksum | cut -d' ' -f1) % ${#PALETTE[@]} )); printf '%s' "${PALETTE[$i]}"; }
+
+# --icon VALUE -> "STYLE<TAB>PICTURE"; a picture is checked before anything is created.
+parse_icon() {
+  case "$1" in
+    letter|claude) printf '%s\t' "$1" ;;
+    "") die "--icon takes letter, claude or the path of a picture" ;;
+    *)
+      local pic="${1/#\~/$HOME}"
+      [ -f "$pic" ] || die "--icon: no such picture '$1' (or use letter or claude)"
+      local size; size="$(sips -g pixelWidth "$pic" 2>/dev/null)" || true   # in $(), so a crash of sips stays quiet
+      [[ "$size" == *"pixelWidth: "[0-9]* ]] || die "--icon: '$1' is not a picture macOS can read"
+      pic="$(cd "$(dirname "$pic")" && pwd)/$(basename "$pic")"
+      printf 'image\t%s' "$pic" ;;
+  esac
+}
+
+check_color() { [[ "$1" =~ ^[0-9A-Fa-f]{6}$ ]] || die "--color takes a hex colour such as 3B6FD8"; }
+
+write_plist() { # APP NAME STYLE COLOR
+  cat > "$1/Contents/Info.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Claude $2</string>
+  <key>CFBundleDisplayName</key><string>Claude $2</string>
+  <key>CFBundleIdentifier</key><string>local.claude-multi-desktop.$(slug "$2")</string>
+  <key>CFBundleExecutable</key><string>launcher</string>
+  <key>CFBundleIconFile</key><string>icon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>$VERSION</string>
+  <key>CFBundleVersion</key><string>$VERSION</string>
+  <key>LSUIElement</key><true/>
+  <key>ClaudeMultiDesktopIcon</key><string>$3</string>
+  <key>ClaudeMultiDesktopColor</key><string>$4</string>
+</dict>
+</plist>
+EOF
+}
+
+plist_get() { "$PLISTBUDDY" -c "Print :$2" "$1/Contents/Info.plist" 2>/dev/null || true; }
+
+draw_icon() { # APP NAME STYLE COLOR [PICTURE]; prints a note when no icon could be drawn
+  local letter src="${5:-}"
+  letter="$(printf '%s' "$2" | cut -c1 | tr '[:lower:]' '[:upper:]')"
+  if [ "$3" = claude ]; then src="$(find_claude)" || { say "note: Claude.app not found, so the icon is a coloured letter"; draw_icon "$1" "$2" letter "$4"; return; }; fi
+  rm -f "$1/Contents/Resources/icon.icns"
+  make_icon "$3" "$letter" "$4" "$1/Contents/Resources/icon.icns" "$src" || say "note: could not draw an icon; the launcher works without one"
+}
+
+refresh_app() { # tell Finder, Launchpad and the Dock that the launcher changed
+  local lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+  touch "$1"
+  [ -x "$lsreg" ] && "$lsreg" -f "$1" >/dev/null 2>&1 || true
+}
+
+is_ours() { [ -f "$1/Contents/MacOS/launcher" ] && grep -qF "$MARKER" "$1/Contents/MacOS/launcher"; }
+
 cmd_add() {
-  local name="" default=0 color=""
+  local name="" default=0 color="" icon="letter" pic=""
   while [ $# -gt 0 ]; do
     case "$1" in
       --default) default=1 ;;
       --color) shift; color="${1:-}" ;;
+      --icon) shift; IFS=$'\t' read -r icon pic < <(parse_icon "${1:-}"; printf '\n') ;;
       -h|--help) usage; return 0 ;;
       -*) die "unknown option: $1" ;;
       *) [ -z "$name" ] || die "one name at a time (quote names with spaces)"; name="$1" ;;
     esac
     shift
   done
-  [ -n "$name" ] || die "usage: claude-multi-desktop add NAME [--default] [--color HEX]"
+  [ -n "$name" ] || die "usage: claude-multi-desktop add NAME [--default] [--icon ICON] [--color HEX]"
   check_name "$name"
+  [ -n "$icon" ] || exit 1
   local claude; claude="$(find_claude)" || die "Claude.app not found in /Applications or ~/Applications (set CLAUDE_APP=/path/to/Claude.app)"
   color="${color#\#}"
-  if [ -z "$color" ]; then
-    local i; i=$(( $(printf '%s' "$name" | cksum | cut -d' ' -f1) % ${#PALETTE[@]} ))
-    color="${PALETTE[$i]}"
-  fi
-  [[ "$color" =~ ^[0-9A-Fa-f]{6}$ ]] || die "--color takes a hex colour such as 3B6FD8"
+  [ -n "$color" ] || color="$(default_color "$name")"
+  check_color "$color"
 
   local app dir_expr dir
   app="$(app_path "$name")"
@@ -148,27 +241,9 @@ $MARKER (https://github.com/jackson-cmd/claude-multi-desktop)
 exec open -n -a "$claude" --args --user-data-dir="$dir_expr"
 EOF
   chmod +x "$app/Contents/MacOS/launcher"
-  cat > "$app/Contents/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key><string>Claude $name</string>
-  <key>CFBundleDisplayName</key><string>Claude $name</string>
-  <key>CFBundleIdentifier</key><string>local.claude-multi-desktop.$(slug "$name")</string>
-  <key>CFBundleExecutable</key><string>launcher</string>
-  <key>CFBundleIconFile</key><string>icon</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>$VERSION</string>
-  <key>CFBundleVersion</key><string>$VERSION</string>
-  <key>LSUIElement</key><true/>
-</dict>
-</plist>
-EOF
-  local letter; letter="$(printf '%s' "$name" | cut -c1 | tr '[:lower:]' '[:upper:]')"
-  make_icon "$letter" "$color" "$app/Contents/Resources/icon.icns" || say "note: could not draw an icon; the launcher works without one"
-  local lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
-  [ -x "$lsreg" ] && "$lsreg" -f "$app" >/dev/null 2>&1 || true
+  write_plist "$app" "$name" "$icon" "$color"
+  draw_icon "$app" "$name" "$icon" "$color" "$pic"
+  refresh_app "$app"
 
   say "Created  $app"
   say "Account  $dir"
@@ -179,16 +254,79 @@ EOF
   fi
 }
 
+# Style and colour a launcher was made with; launchers from 0.1.0 have neither recorded, so use what 0.1.0 drew.
+icon_settings() { # APP NAME -> "STYLE<TAB>COLOR"
+  local style color
+  style="$(plist_get "$1" ClaudeMultiDesktopIcon)"; color="$(plist_get "$1" ClaudeMultiDesktopColor)"
+  printf '%s\t%s' "${style:-letter}" "${color:-$(default_color "$2")}"
+}
+
+cmd_icon() {
+  local name="" icon="" pic="" color=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --color) shift; color="${1:-}" ;;
+      --icon) shift; IFS=$'\t' read -r icon pic < <(parse_icon "${1:-}"; printf '\n'); [ -n "$icon" ] || exit 1 ;;
+      -*) die "unknown option: $1" ;;
+      *) [ -z "$name" ] || die "one name at a time (quote names with spaces)"; name="$1" ;;
+    esac
+    shift
+  done
+  if [ -z "$name" ] || { [ -z "$icon" ] && [ -z "$color" ]; }; then
+    die "usage: claude-multi-desktop icon NAME [--icon letter|claude|/path/to/image] [--color HEX]"
+  fi
+  local app old_style old_color; app="$(app_path "$name")"
+  is_ours "$app" || die "no launcher made by this tool at '$app'"
+  IFS=$'\t' read -r old_style old_color < <(icon_settings "$app" "$name"; printf '\n')
+  color="${color#\#}"; [ -z "$color" ] || check_color "$color"
+  if [ -z "$icon" ]; then
+    [ "$old_style" != image ] || die "a picture icon has no colour; use --icon letter or --icon claude with --color"
+    icon="$old_style"
+  fi
+  write_plist "$app" "$name" "$icon" "${color:-$old_color}"
+  draw_icon "$app" "$name" "$icon" "${color:-$old_color}" "$pic"
+  refresh_app "$app"
+  say "New icon for $app"
+  say "If the Dock still shows the old one, remove the launcher from the Dock and drag it back."
+}
+
+cmd_rename() {
+  [ $# -eq 2 ] || die "usage: claude-multi-desktop rename NAME NEW-NAME"
+  local old="$1" new="$2" from to style color dir
+  check_name "$new"
+  from="$(app_path "$old")"; to="$(app_path "$new")"
+  is_ours "$from" || die "no launcher made by this tool at '$from'"
+  [ "$from" != "$to" ] || die "the new name is the same as the old one"
+  [ ! -e "$to" ] || [ "$(printf '%s' "$old" | tr '[:upper:]' '[:lower:]')" = "$(printf '%s' "$new" | tr '[:upper:]' '[:lower:]')" ] ||
+    die "'$to' already exists"
+  IFS=$'\t' read -r style color < <(icon_settings "$from" "$old"; printf '\n')
+  dir="$(launcher_dir "$from" || true)"
+  local lsreg=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+  [ -x "$lsreg" ] && "$lsreg" -u "$from" >/dev/null 2>&1 || true
+  mv "$from" "$to.tmp-rename" && mv "$to.tmp-rename" "$to"   # two steps, so a change of case also works
+  write_plist "$to" "$new" "$style" "$color"
+  [ "$style" = image ] || draw_icon "$to" "$new" "$style" "$color"
+  refresh_app "$to"
+  say "Renamed  $from"
+  say "     to  $to"
+  say "Account  ${dir/#$HOME/~} (unchanged, so its sign-in and chats are kept)"
+  say "If the old launcher was in the Dock, drag the new one there."
+}
+
 launchers() { # prints one launcher path per line
   local a
   for a in "$APPS_DIR"/Claude\ *.app; do
-    [ -f "$a/Contents/MacOS/launcher" ] && grep -qF "$MARKER" "$a/Contents/MacOS/launcher" && printf '%s\n' "$a"
+    is_ours "$a" && printf '%s\n' "$a"
   done
   return 0
 }
 
 cmd_list() {
   local found=0 a name dir state
+  if [ "${1:-}" = --names ]; then # one NAME per line, for scripts and the Claude Multi Desktop app
+    while IFS= read -r a; do [ -z "$a" ] || { a="$(basename "$a" .app)"; say "${a#Claude }"; }; done < <(launchers)
+    return 0
+  fi
   printf '%-22s %-6s %s\n' "LAUNCHER" "STATE" "ACCOUNT FOLDER"
   while IFS= read -r a; do
     [ -n "$a" ] || continue
@@ -220,9 +358,7 @@ cmd_remove() {
   done
   [ -n "$name" ] || die "usage: claude-multi-desktop remove NAME [--delete-data]"
   local app dir; app="$(app_path "$name")"
-  if ! { [ -f "$app/Contents/MacOS/launcher" ] && grep -qF "$MARKER" "$app/Contents/MacOS/launcher"; }; then
-    die "no launcher made by this tool at '$app'"
-  fi
+  is_ours "$app" || die "no launcher made by this tool at '$app'"
   dir="$(launcher_dir "$app" || true)"
   rm -rf "$app"
   say "Removed  $app"
@@ -291,7 +427,9 @@ main() {
   local cmd="${1:-help}"; [ $# -gt 0 ] && shift
   case "$cmd" in
     add) cmd_add "$@" ;;
-    list|ls) cmd_list ;;
+    list|ls) cmd_list "$@" ;;
+    icon) cmd_icon "$@" ;;
+    rename|mv) cmd_rename "$@" ;;
     open) cmd_open "$@" ;;
     peers) cmd_peers ;;
     remove|rm) cmd_remove "$@" ;;
