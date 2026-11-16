@@ -45,7 +45,7 @@ claude-multi-desktop add Main --default  # a launcher for the account you alread
 
 That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
 
-No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm, PyPI and a Claude Code plugin.
+No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm and a Claude Code plugin.
 
 ## Install
 
@@ -85,13 +85,6 @@ The app is not signed with an Apple Developer ID either, so the first open is bl
 ```bash
 npx claude-multi-desktop add Work     # run it without installing
 npm install -g claude-multi-desktop   # or install the command
-```
-
-### PyPI
-
-```bash
-pipx install claude-multi-desktop     # install the command
-uvx claude-multi-desktop add Work     # or run it without installing
 ```
 
 ### Claude Code plugin
