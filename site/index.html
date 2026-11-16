@@ -84,6 +84,16 @@
     <li><strong>No dependencies, nothing patched.</strong> Each launcher opens the Claude.app you already have with Electron's public <code>--user-data-dir</code> flag. It makes no copy of Claude.app, re-signs nothing and runs nothing in the background. Claude's updates reach every account.</li>
   </ol>
 
+  <h2 id="who-it-is-for">Who it is for</h2>
+  <p>claude-multi-desktop was designed for one person who has two Claude accounts of their own, a personal one and a work one, that cannot be opened in the same window. That happens in two cases:</p>
+  <ul>
+    <li><strong>Your personal and work accounts use different email addresses.</strong> Each email is its own sign-in, and Claude Desktop holds one sign-in at a time, so without this tool you sign out of one account to use the other.</li>
+    <li><strong>Your work account came before your personal one.</strong> For example, your employer set up a seat under your work email before you had a personal account, and the personal account you added later is a separate sign-in.</li>
+  </ul>
+  <p>In both cases the tool gives each account its own window, so both stay signed in, while Claude Code keeps one setup for you as a single user.</p>
+  <p><strong>Other uses.</strong> The launchers work for any account folder, so the tool can technically run other kinds of profiles too. That is not what it was built for. If you use it outside the two cases above, you do so at your own risk, and the authors accept no responsibility for the consequences.</p>
+  <p><strong>Usage quotas.</strong> Running several accounts to farm, pool or stretch usage limits is not supported. Issues and pull requests that ask for help with that will be closed.</p>
+
   <h2 id="quick-start">Quick start</h2>
   <p>You need macOS and Claude Desktop in <code>/Applications</code>.</p>
 <pre><code>brew install jackson-cmd/tap/claude-multi-desktop
@@ -225,16 +235,17 @@ claude-multi-desktop list --names                            # print the launche
   <p>No. Launchers only open the Claude.app you already have, with a public Electron flag.</p>
   <h2 id="disclaimer">Disclaimer</h2>
   <p>claude-multi-desktop is an independent open-source project. It is not affiliated with, endorsed by or supported by Anthropic. “Claude” and “Claude Desktop” are trademarks of Anthropic.</p>
-  <p><strong>Acceptable use.</strong> Use this tool only for legitimate purposes and only with Claude accounts you are entitled to use, for example to keep a work account and a personal account open side by side. Do not use it:</p>
+  <p><strong>Intended use.</strong> The tool is built for one person who keeps a personal and a work Claude account open side by side, as described in <a href="#who-it-is-for">Who it is for</a>. Any other use, such as running other kinds of profiles, is outside its intended use and entirely at your own risk.</p>
+  <p><strong>Acceptable use.</strong> Use this tool only for legitimate purposes and only with Claude accounts you are entitled to use. Do not use it:</p>
   <ul>
-    <li>to get around, pool or stretch usage limits, rate limits or plan restrictions, for example by switching to another account to keep working after one has reached its limit;</li>
+    <li>to abuse usage quotas, that is, to get around, farm, pool or stretch usage limits, rate limits or plan restrictions, for example by switching to another account to keep working after one has reached its limit. This project does not support such use;</li>
     <li>to share accounts or sign-ins with other people, or to use accounts that are not yours;</li>
     <li>for anything that Anthropic's Consumer Terms, Commercial Terms or Usage Policy, or your employer's rules, do not allow.</li>
   </ul>
   <p>You are responsible for how you use your accounts. Anthropic may restrict or close accounts that break its terms, and the authors of this project accept no responsibility for that or for any other consequence of using it. The software is provided “as is”, without warranty of any kind.</p>
 </main>
 <footer>
-  claude-multi-desktop is an independent open-source project (MIT) and is not affiliated with or endorsed by Anthropic. “Claude” is a trademark of Anthropic. For legitimate use only, with accounts you are entitled to use; not for getting around usage limits or sharing accounts.
+  claude-multi-desktop is an independent open-source project (MIT) and is not affiliated with or endorsed by Anthropic. “Claude” is a trademark of Anthropic. Built for one person with a personal and a work account. For legitimate use only; not for abusing usage quotas or sharing accounts.
   · <a href="https://github.com/jackson-cmd/claude-multi-desktop">Source on GitHub</a>
 </footer>
 </body>
