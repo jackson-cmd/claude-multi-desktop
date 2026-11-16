@@ -6,7 +6,7 @@ This package only carries the claude-multi-desktop bash script and starts it wit
 import os
 import sys
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "claude-multi-desktop")
 
 
