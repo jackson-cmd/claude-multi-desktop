@@ -101,7 +101,7 @@ claude-multi-desktop add Work            # launcher "Claude Work" with its own s
 claude-multi-desktop open Work           # second window: sign in with your other account
 claude-multi-desktop add Main --default  # launcher for the account you already use</code></pre>
   <p>The launchers go to <code>~/Applications</code>, so Spotlight, Launchpad and the Dock find them. Drag them to the Dock and click whichever account you want; they can all stay open side by side.</p>
-  <p>No Homebrew, or would you rather not use Terminal? <a href="#install">Install</a> lists a Mac installer, a disk image with a double-click app, npm and a Claude Code plugin.</p>
+  <p>No Homebrew, or would you rather not use Terminal? <a href="#install">Install</a> lists a Mac installer, a disk image with a double-click app, npm, PyPI and a Claude Code plugin.</p>
 
   <h2 id="install">Install</h2>
   <p>Homebrew is the shortest way. The others are for people without Homebrew, or who would rather not use Terminal.</p>
@@ -141,6 +141,10 @@ sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop</code></pre>
 <pre><code>npx claude-multi-desktop add Work     # run it without installing
 npm install -g claude-multi-desktop   # or install the command</code></pre>
 
+  <h3>PyPI</h3>
+<pre><code>uvx claude-multi-desktop add Work     # run it without installing
+pipx install claude-multi-desktop     # or install the command (uv tool install works too)</code></pre>
+
   <h3>Claude Code plugin</h3>
 <pre><code>/plugin marketplace add jackson-cmd/claude-multi-desktop
 /plugin install account-handoff@multi-desktop</code></pre>
@@ -177,6 +181,7 @@ cd claude-multi-desktop
     <tr><td>Homebrew</td><td><code>brew upgrade claude-multi-desktop</code></td></tr>
     <tr><td>Mac installer or disk image</td><td>Download the newer <code>.pkg</code> or <code>.dmg</code> from the <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">latest release</a> and install it the same way</td></tr>
     <tr><td>npm</td><td><code>npm install -g claude-multi-desktop@latest</code>, or <code>npx claude-multi-desktop@latest</code></td></tr>
+    <tr><td>PyPI</td><td><code>pipx upgrade claude-multi-desktop</code> or <code>uv tool upgrade claude-multi-desktop</code>; <code>uvx</code> always runs the latest</td></tr>
     <tr><td>Claude Code plugin</td><td><code>/plugin marketplace update multi-desktop</code></td></tr>
   </table>
   <p>Launchers you already made keep working after an update, because they only open Claude.app.</p>

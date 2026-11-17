@@ -58,7 +58,7 @@ claude-multi-desktop add Main --default  # a launcher for the account you alread
 
 That's it. You now have **Claude Work** and **Claude Main** in `~/Applications`, so Spotlight, Launchpad and the Dock all find them. Drag them to the Dock and click whichever account you want; both can stay open side by side.
 
-No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm and a Claude Code plugin.
+No Homebrew, or would you rather not use Terminal? [Install](#install) lists a Mac installer, a disk image with a double-click app, npm, PyPI and a Claude Code plugin.
 
 ## Install
 
@@ -112,6 +112,13 @@ Want no warning at all? Install with Homebrew instead: `brew install jackson-cmd
 ```bash
 npx claude-multi-desktop add Work     # run it without installing
 npm install -g claude-multi-desktop   # or install the command
+```
+
+### PyPI
+
+```bash
+uvx claude-multi-desktop add Work     # run it without installing
+pipx install claude-multi-desktop     # or install the command (uv tool install works too)
 ```
 
 ### Claude Code plugin
@@ -180,6 +187,7 @@ You never need to remake launchers after a Claude update. If Claude restarts its
 | Homebrew | `brew upgrade claude-multi-desktop` |
 | Mac installer or disk image | Download the newer `.pkg` or `.dmg` from the [latest release](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest) and install it the same way; it replaces the old copy |
 | npm | `npm install -g claude-multi-desktop@latest`, or run `npx claude-multi-desktop@latest` |
+| PyPI | `pipx upgrade claude-multi-desktop` or `uv tool upgrade claude-multi-desktop`; `uvx` always runs the latest |
 | curl | Run the same curl line again |
 | git clone | `git pull` in the folder |
 | Claude Code plugin | `/plugin marketplace update multi-desktop` |
