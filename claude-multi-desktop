@@ -30,6 +30,12 @@ Usage:
                                     Rename a launcher; its sign-in and chats stay
   claude-multi-desktop list         Show your launchers and which are open
   claude-multi-desktop open NAME    Open that account's window
+  claude-multi-desktop quit NAME... | --all
+                                    Quit Claude in those accounts, or in every account (do this
+                                    before you update Claude Desktop)
+  claude-multi-desktop doctor [--fix]
+                                    Check every launcher; --fix repairs launchers whose Claude.app
+                                    has moved, and finds account folders that lost their launcher
   claude-multi-desktop peers        Show Claude Code sessions running in every account
   claude-multi-desktop remove NAME [--delete-data]
   claude-multi-desktop version | help
@@ -49,10 +55,12 @@ to use. Do not use it to get around usage limits or to share accounts.
 EOF
 }
 
+is_claude() { [ -n "$1" ] && [ -x "$1/Contents/MacOS/Claude" ]; }
+
 find_claude() {
   local p
   for p in "${CLAUDE_APP:-}" "/Applications/Claude.app" "$HOME/Applications/Claude.app"; do
-    if [ -n "$p" ] && [ -x "$p/Contents/MacOS/Claude" ]; then printf '%s' "$p"; return 0; fi
+    if is_claude "$p"; then printf '%s' "$p"; return 0; fi
   done
   return 1
 }
@@ -69,20 +77,54 @@ app_path() { printf '%s/Claude %s.app' "$APPS_DIR" "$1"; }
 slug() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-' | sed 's/-*$//'; }
 
 # Folder (under ~/Library/Application Support) that a launcher points at, read from the launcher itself.
-launcher_dir() {
+# launcher_dir_expr gives it as written, with a literal $HOME; launcher_dir expands that.
+launcher_dir_expr() {
   local line
   line="$(grep -o 'user-data-dir="[^"]*"' "$1/Contents/MacOS/launcher" 2>/dev/null | head -1)" || return 1
-  line="${line#user-data-dir=\"}"; line="${line%\"}"
-  printf '%s' "${line/\$HOME/$HOME}"
+  line="${line#user-data-dir=\"}"; printf '%s' "${line%\"}"
+}
+launcher_dir() { local e; e="$(launcher_dir_expr "$1")" || return 1; printf '%s' "${e/\$HOME/$HOME}"; }
+
+launcher_target() { # the Claude.app a launcher opens
+  local line
+  line="$(grep -o 'open -n -a "[^"]*"' "$1/Contents/MacOS/launcher" 2>/dev/null | head -1)" || return 1
+  line="${line#open -n -a \"}"; printf '%s' "${line%\"}"
 }
 
-is_open() { # true when a Claude process runs with this account folder
-  local esc procs
-  esc="$(printf '%s' "$1" | sed 's/[][\.*^$+?(){}|]/\\&/g')"
-  procs="$(ps -axo command= 2>/dev/null || true)"
-  grep -Eq -- "--user-data-dir=${esc}( |$)" <<< "$procs" && return 0
-  # The default account also runs when Claude.app is opened the normal way, with no flag at all.
-  [ "$1" = "$SUPPORT/Claude" ] && grep -Eq '/Claude\.app/Contents/MacOS/Claude$' <<< "$procs"
+write_launcher() { # APP CLAUDE.APP DIR-EXPRESSION (with a literal $HOME, expanded when the launcher runs)
+  cat > "$1/Contents/MacOS/launcher" <<EOF
+#!/bin/bash
+$MARKER (https://github.com/jackson-cmd/claude-multi-desktop)
+exec open -n -a "$2" --args --user-data-dir="$3"
+EOF
+  chmod +x "$1/Contents/MacOS/launcher"
+}
+
+re_escape() { printf '%s' "$1" | sed 's/[][\.*^$+?(){}|]/\\&/g'; }
+
+# PIDs of the Claude main process that runs with this account folder, one per line. Its helper processes
+# (renderer, GPU and so on) are left out: asking the main process to quit closes them too.
+account_pids() {
+  local procs esc app
+  procs="$(ps -axo pid=,command= 2>/dev/null || true)"
+  procs="$(grep -F '/Contents/MacOS/Claude' <<< "$procs" | grep -vF -e 'Claude Helper' -e ' --type=' || true)"
+  [ -n "$procs" ] || return 0
+  esc="$(re_escape "$1")"
+  {
+    grep -E -- "/Contents/MacOS/Claude .*--user-data-dir=${esc}( |\$)" <<< "$procs" || true
+    # The default account also runs when Claude.app is opened the normal way, with no flag at all.
+    if [ "$1" = "$SUPPORT/Claude" ]; then
+      if app="$(find_claude)"; then esc="$(re_escape "$app")"; else esc='[^ ]*/Claude\.app'; fi
+      grep -E -- "^ *[0-9]+ (.* )?${esc}/Contents/MacOS/Claude( -psn_[0-9_]+)?\$" <<< "$procs" || true
+    fi
+  } | awk '{ print $1 }' | sort -un
+}
+
+is_open() { [ -n "$(account_pids "$1")" ]; } # true when Claude runs with this account folder
+
+still_running() { # "PID PID ..." -> prints those that have not ended (a finished process waiting to be reaped counts as ended)
+  [ -n "${1// /}" ] || return 0
+  ps -o pid=,stat= -p "$(printf '%s' "$1" | tr -s ' ' ',' | sed 's/^,//; s/,$//')" 2>/dev/null | awk '$2 !~ /^Z/ { print $1 }'
 }
 
 # Draw the launcher icon. STYLE is letter, claude or image; SRC is Claude.app (claude) or the picture (image).
@@ -235,12 +277,7 @@ cmd_add() {
   done
 
   mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
-  cat > "$app/Contents/MacOS/launcher" <<EOF
-#!/bin/bash
-$MARKER (https://github.com/jackson-cmd/claude-multi-desktop)
-exec open -n -a "$claude" --args --user-data-dir="$dir_expr"
-EOF
-  chmod +x "$app/Contents/MacOS/launcher"
+  write_launcher "$app" "$claude" "$dir_expr"
   write_plist "$app" "$name" "$icon" "$color"
   draw_icon "$app" "$name" "$icon" "$color" "$pic"
   refresh_app "$app"
@@ -322,7 +359,7 @@ launchers() { # prints one launcher path per line
 }
 
 cmd_list() {
-  local found=0 a name dir state
+  local found=0 broken=0 a name dir state
   if [ "${1:-}" = --names ]; then # one NAME per line, for scripts and the Claude Multi Desktop app
     while IFS= read -r a; do [ -z "$a" ] || { a="$(basename "$a" .app)"; say "${a#Claude }"; }; done < <(launchers)
     return 0
@@ -332,10 +369,13 @@ cmd_list() {
     [ -n "$a" ] || continue
     found=1
     name="$(basename "$a" .app)"; dir="$(launcher_dir "$a" || true)"
-    if is_open "$dir"; then state="open"; else state="-"; fi
+    if is_open "$dir"; then state="open"
+    elif ! is_claude "$(launcher_target "$a" || true)"; then state="broken"; broken=1
+    else state="-"; fi
     printf '%-22s %-6s %s\n' "$name" "$state" "${dir/#$HOME/~}"
   done < <(launchers)
   [ "$found" = 1 ] || say "(no launchers yet: claude-multi-desktop add Work)"
+  [ "$broken" = 0 ] || say "A broken launcher opens a Claude.app that is no longer there. Repair it: claude-multi-desktop doctor --fix"
 }
 
 cmd_open() {
@@ -343,6 +383,148 @@ cmd_open() {
   local app; app="$(app_path "$1")"
   [ -d "$app" ] || die "no launcher named '$1' (see: claude-multi-desktop list)"
   open "$app"
+}
+
+# Ask Claude in one account, several, or every account to quit, as Cmd-Q does, and wait until each has closed.
+# Quit every account before updating Claude Desktop: the update may not install while another account is open.
+cmd_quit() {
+  local all=0 names="" n a targets="" label dir pids every="" rows="" alive p left closed=0 stuck=0
+  local secs="${CMD_QUIT_WAIT:-20}"
+  [[ "$secs" =~ ^[0-9]+$ ]] || die "CMD_QUIT_WAIT must be a number of seconds"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --all|-a) all=1 ;;
+      -*) die "unknown option: $1" ;;
+      *) names+="$1"$'\n' ;;
+    esac
+    shift
+  done
+  if [ "$all" = 1 ] && [ -z "$names" ]; then
+    while IFS= read -r a; do
+      [ -n "$a" ] || continue
+      targets+="$(basename "$a" .app)"$'\t'"$(launcher_dir "$a" || true)"$'\n'
+    done < <(launchers)
+    # Claude opened the normal way uses the default folder, whether or not a launcher points at it.
+    cut -f2 <<< "$targets" | grep -qxF -- "$SUPPORT/Claude" || targets+="Claude (default account)"$'\t'"$SUPPORT/Claude"$'\n'
+  elif [ "$all" = 0 ] && [ -n "$names" ]; then
+    while IFS= read -r n; do
+      [ -n "$n" ] || continue
+      a="$(app_path "$n")"
+      is_ours "$a" || die "no launcher named '$n' (see: claude-multi-desktop list)"
+      targets+="Claude $n"$'\t'"$(launcher_dir "$a" || true)"$'\n'
+    done <<< "$names"
+  else
+    die "usage: claude-multi-desktop quit NAME...   or   claude-multi-desktop quit --all"
+  fi
+
+  # SIGTERM makes Claude quit the way Cmd-Q does: it saves its state and closes its windows.
+  while IFS=$'\t' read -r label dir; do
+    [ -n "$label" ] || continue
+    pids=""; [ -z "$dir" ] || pids="$(account_pids "$dir" | tr '\n' ' ')"
+    # shellcheck disable=SC2086  # one argument per PID
+    [ -z "${pids// /}" ] || kill -TERM $pids 2>/dev/null || true
+    rows+="$label"$'\t'"$pids"$'\n'; every+=" $pids"
+  done <<< "$targets"
+  left=$((secs * 10))
+  while [ "$left" -gt 0 ] && [ -n "$(still_running "$every")" ]; do sleep 0.1; left=$((left - 1)); done
+
+  alive=" $(still_running "$every" | tr '\n' ' ') "
+  while IFS=$'\t' read -r label pids; do
+    [ -n "$label" ] || continue
+    if [ -z "${pids// /}" ]; then [ "$all" = 1 ] || say "Not open $label"; continue; fi
+    n=0; for p in $pids; do [[ "$alive" != *" $p "* ]] || n=1; done
+    if [ "$n" = 1 ]; then stuck=1; say "Running  $label: still open after ${secs}s"
+    else closed=1; say "Quit     $label"; fi
+  done <<< "$rows"
+  [ "$all" = 0 ] || [ "$closed" = 1 ] || [ "$stuck" = 1 ] || say "No Claude window was open."
+  [ "$stuck" = 0 ] || die "a window may be asking you something (unsaved work, a running task); answer it and run quit again, or force it with Option-Command-Esc"
+}
+
+report_line() { printf '  %-7s %s\n' "$1" "$2"; }
+
+# Check every launcher and what it relies on. With --fix, repair what is safe to repair: a launcher whose Claude.app
+# has moved is pointed at the Claude.app found now, a launcher that cannot run is made runnable, a missing icon is
+# drawn again. Account folders (sign-ins and chats) are never changed.
+cmd_doctor() {
+  local fix=0
+  case "${1:-}" in --fix) fix=1 ;; "") ;; *) die "usage: claude-multi-desktop doctor [--fix]" ;; esac
+  local claude="" problems=0 fixable=0 fixed=0 a name short dir expr target other style color issues dirs="" d n
+
+  if claude="$(find_claude)"; then report_line ok "Claude.app at $claude"
+  else
+    claude=""; problems=$((problems + 1))
+    report_line PROBLEM "Claude.app not found in /Applications or ~/Applications (set CLAUDE_APP=/path/to/Claude.app)"
+  fi
+  if [ -d "$CLAUDE_HOME" ]; then report_line ok "Claude Code settings at ${CLAUDE_HOME/#$HOME/~}, shared by every account"
+  else report_line note "no ${CLAUDE_HOME/#$HOME/~} yet; Claude Code makes it the first time it runs"; fi
+
+  while IFS= read -r a; do
+    [ -n "$a" ] || continue
+    name="$(basename "$a" .app)"; short="${name#Claude }"; issues=0
+    expr="$(launcher_dir_expr "$a" || true)"; dir="${expr/\$HOME/$HOME}"; target="$(launcher_target "$a" || true)"
+    if [ -z "$expr" ] || [ -z "$target" ]; then
+      problems=$((problems + 1))
+      report_line PROBLEM "$name: the launcher is damaged; remove it and add it again (its account folder is kept)"
+      continue
+    fi
+    if [ ! -x "$a/Contents/MacOS/launcher" ]; then
+      issues=1
+      if [ "$fix" = 1 ]; then
+        chmod +x "$a/Contents/MacOS/launcher"; fixed=$((fixed + 1))
+        report_line fixed "$name: the launcher was not allowed to run; now it is"
+      else problems=$((problems + 1)); fixable=1; report_line PROBLEM "$name: the launcher is not allowed to run"; fi
+    fi
+    if ! is_claude "$target"; then
+      issues=1
+      if [ "$fix" = 1 ] && [ -n "$claude" ]; then
+        write_launcher "$a" "$claude" "$expr"; refresh_app "$a"; fixed=$((fixed + 1))
+        report_line fixed "$name: opened $target, which is gone; now opens $claude"
+      else
+        problems=$((problems + 1)); [ -z "$claude" ] || fixable=1
+        report_line PROBLEM "$name: opens $target, which is not there"
+      fi
+    fi
+    other="$(awk -F'\t' -v d="$dir" '$1 == d { print $2; exit }' <<< "$dirs")"
+    if [ -n "$other" ]; then
+      issues=1; problems=$((problems + 1))
+      report_line PROBLEM "$name and $other open the same account; remove one of them"
+    fi
+    dirs+="$dir"$'\t'"$name"$'\n'
+    [ "$issues" = 1 ] || report_line ok "$name opens ${dir/#$HOME/~}"
+    if is_claude "$target" && [ -n "$claude" ] && [ "$target" != "$claude" ]; then
+      report_line note "$name starts $target, not $claude"
+    fi
+    if [ ! -d "$dir" ]; then report_line note "$name has not been opened yet; its folder is made the first time it opens"; fi
+    if [ ! -s "$a/Contents/Resources/icon.icns" ]; then
+      IFS=$'\t' read -r style color < <(icon_settings "$a" "$short"; printf '\n')
+      if [ "$style" = image ]; then
+        report_line note "$name has no icon; give it one: claude-multi-desktop icon \"$short\" --icon /path/to/picture"
+      elif [ "$fix" = 1 ]; then
+        mkdir -p "$a/Contents/Resources"
+        if draw_icon "$a" "$short" "$style" "$color" >/dev/null && [ -s "$a/Contents/Resources/icon.icns" ]; then
+          refresh_app "$a"; fixed=$((fixed + 1)); report_line fixed "$name: its icon was missing and is drawn again"
+        else report_line note "$name has no icon and none could be drawn; the launcher works without one"; fi
+      else report_line note "$name has no icon (doctor --fix draws it again)"; fi
+    fi
+  done < <(launchers)
+
+  # Folders whose launcher was removed still hold a sign-in and chats; adding the launcher again brings them back.
+  for d in "$SUPPORT"/Claude-*; do
+    [ -d "$d" ] || continue
+    n="${d#"$SUPPORT/Claude-"}"
+    { [[ "$n" =~ ^[A-Za-z0-9][A-Za-z0-9\ _-]{0,29}$ ]] && [[ ! "$n" =~ [-\ ]?3[pP]$ ]]; } || continue
+    if cut -f1 <<< "$dirs" | grep -qxF -- "$d"; then continue; fi
+    if [ -e "$(app_path "$n")" ]; then report_line note "${d/#$HOME/~} keeps a sign-in and chats but no launcher opens it"
+    else report_line note "${d/#$HOME/~} keeps a sign-in and chats but has no launcher; bring it back: claude-multi-desktop add \"$n\""; fi
+  done
+
+  say ""
+  if [ "$problems" -gt 0 ]; then
+    say "$problems problem(s) found."
+    [ "$fixable" = 0 ] || say "Repair what can be repaired: claude-multi-desktop doctor --fix"
+    return 1
+  fi
+  if [ "$fixed" -gt 0 ]; then say "Fixed $fixed problem(s); nothing else to fix."; else say "No problems found."; fi
 }
 
 cmd_remove() {
@@ -431,6 +613,8 @@ main() {
     icon) cmd_icon "$@" ;;
     rename|mv) cmd_rename "$@" ;;
     open) cmd_open "$@" ;;
+    quit) cmd_quit "$@" ;;
+    doctor) cmd_doctor "$@" ;;
     peers) cmd_peers ;;
     remove|rm) cmd_remove "$@" ;;
     version|--version|-v) say "claude-multi-desktop $VERSION" ;;

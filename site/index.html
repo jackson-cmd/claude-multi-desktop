@@ -118,7 +118,7 @@ sudo rm -rf "/Applications/Claude Multi Desktop.app"
 sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop</code></pre>
 
   <h3>Disk image (.dmg)</h3>
-  <p>Download the <code>.dmg</code> file from the same <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">release page</a>, drag <strong>Claude Multi Desktop</strong> to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.</p>
+  <p>Download the <code>.dmg</code> file from the same <a href="https://github.com/jackson-cmd/claude-multi-desktop/releases/latest">release page</a>, drag <strong>Claude Multi Desktop</strong> to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, quit, rename or remove launchers you already made, quit every account before a Claude update, and check and repair your launchers. You never need Terminal.</p>
   <p>The app is not signed with an Apple Developer ID either: see <a href="#if-macos-blocks">If macOS blocks the app or installer</a>. The disk image carries the same steps as a text file next to the app.</p>
 
   <h3 id="if-macos-blocks">If macOS blocks the app or installer</h3>
@@ -170,7 +170,7 @@ cd claude-multi-desktop
   <h3>Updating Claude Desktop</h3>
   <p>Every account runs the same Claude.app, so one update covers all of them. Before you update, quit Claude in <strong>every</strong> account: while another account is still open, the update may not install, or the open windows may misbehave.</p>
   <ol>
-    <li>Quit every Claude window (⌘Q in each one, or Claude → Quit Claude).</li>
+    <li>Quit every Claude window: run <code>claude-multi-desktop quit --all</code>, or press ⌘Q in each one.</li>
     <li>Open Claude the normal way, or from your <strong>Claude Main</strong> launcher, and install the update when Claude offers it (or choose Claude → Check for Updates).</li>
     <li>Open your other accounts again from their launchers.</li>
   </ol>
@@ -219,6 +219,9 @@ claude-multi-desktop list --names                            # print the launche
     <tr><td><code>list</code></td><td>Show launchers and which accounts are open</td></tr>
     <tr><td><code>list --names</code></td><td>Print the launcher names only, one per line</td></tr>
     <tr><td><code>open NAME</code></td><td>Open that account's window</td></tr>
+    <tr><td><code>quit NAME</code></td><td>Quit Claude in that account, as ⌘Q does</td></tr>
+    <tr><td><code>quit --all</code></td><td>Quit Claude in every account; do this before you update Claude</td></tr>
+    <tr><td><code>doctor [--fix]</code></td><td>Check every launcher; <code>--fix</code> repairs launchers after Claude.app has moved</td></tr>
     <tr><td><code>peers</code></td><td>Show Claude Code sessions running in every account</td></tr>
     <tr><td><code>remove NAME [--delete-data]</code></td><td>Delete a launcher, and optionally that account's folder</td></tr>
   </table>

@@ -12,12 +12,12 @@ Version 0.1.3. Every method needs macOS and Claude Desktop in /Applications.
 - npm: `npx claude-multi-desktop add Work` or `npm install -g claude-multi-desktop`
 - PyPI: `uvx claude-multi-desktop add Work` or `pipx install claude-multi-desktop` (also `uv tool install claude-multi-desktop`)
 - Claude Code plugin: `/plugin marketplace add jackson-cmd/claude-multi-desktop`, then `/plugin install account-handoff@multi-desktop`. Its skill `handoff` hands a task to a Claude Code session in another account with ListAgents, SendMessage and `claude-multi-desktop peers`, and refuses to move work because an account hit a usage limit. It does not install the command itself.
-- Updates: quit Claude in every account before updating Claude Desktop (one update covers all accounts; launchers keep working). Update the tool with `brew upgrade claude-multi-desktop`, `npm install -g claude-multi-desktop@latest` or `pipx upgrade claude-multi-desktop`.
+- Updates: quit Claude in every account before updating Claude Desktop, with `claude-multi-desktop quit --all` (one update covers all accounts; launchers keep working). Update the tool with `brew upgrade claude-multi-desktop`, `npm install -g claude-multi-desktop@latest` or `pipx upgrade claude-multi-desktop`.
 - curl or git clone: see the README at https://github.com/jackson-cmd/claude-multi-desktop
 
 ## Commands
 
-`add NAME [--default] [--icon claude|/path/to/picture] [--color HEX]`, `icon NAME --icon ... --color HEX`, `rename NAME NEW`, `list [--names]`, `open NAME`, `peers`, `remove NAME [--delete-data]`. With `--icon claude` the icon is drawn on the user's Mac from their own Claude.app with a coloured letter badge; nothing from Anthropic is shipped. Once a window is open, the Dock shows the normal Claude icon and name, because Claude.app decides that and the tool never modifies Claude.app.
+`add NAME [--default] [--icon claude|/path/to/picture] [--color HEX]`, `icon NAME --icon ... --color HEX`, `rename NAME NEW`, `list [--names]`, `open NAME`, `quit NAME... | --all`, `doctor [--fix]`, `peers`, `remove NAME [--delete-data]`. With `--icon claude` the icon is drawn on the user's Mac from their own Claude.app with a coloured letter badge; nothing from Anthropic is shipped. Once a window is open, the Dock shows the normal Claude icon and name, because Claude.app decides that and the tool never modifies Claude.app.
 
 ## Docs
 

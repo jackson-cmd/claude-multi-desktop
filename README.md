@@ -86,7 +86,7 @@ sudo pkgutil --forget io.github.jackson-cmd.claude-multi-desktop
 
 ### Disk image (.dmg)
 
-Download the `.dmg` file from the same [release page](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest), drag **Claude Multi Desktop** to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, rename or remove launchers you already made. You never need Terminal.
+Download the `.dmg` file from the same [release page](https://github.com/jackson-cmd/claude-multi-desktop/releases/latest), drag **Claude Multi Desktop** to Applications and double-click it. It asks for an account name, an icon style (a coloured letter, your Claude icon with a letter badge, or a picture) and a colour, then makes the launcher and opens it. It can also open, quit, rename or remove launchers you already made, quit every account before a Claude update, and check and repair your launchers. You never need Terminal.
 
 The app is not signed with an Apple Developer ID either: see [If macOS blocks the app or installer](#if-macos-blocks-the-app-or-installer). The disk image carries the same steps as a text file next to the app.
 
@@ -174,7 +174,7 @@ Each account signs in on its own, once. Open its launcher (or run `claude-multi-
 
 Every account runs the same Claude.app, so one update covers all of them. Before you update, quit Claude in **every** account: while another account is still open, the update may not install, or the open windows may misbehave.
 
-1. Quit every Claude window (⌘Q in each one, or Claude → Quit Claude).
+1. Quit every Claude window: run `claude-multi-desktop quit --all`, or press ⌘Q in each one.
 2. Open Claude the normal way, or from your **Claude Main** launcher, and install the update when Claude offers it (or choose Claude → Check for Updates).
 3. Open your other accounts again from their launchers.
 
@@ -252,6 +252,10 @@ Claude Desktop keeps each account in its own folder under `~/Library/Application
 | `list` | Show your launchers, their folders and which ones are open |
 | `list --names` | Print the launcher names only, one per line |
 | `open NAME` | Open that account's window |
+| `quit NAME` | Quit Claude in that account, as ⌘Q does (several names work too) |
+| `quit --all` | Quit Claude in every account, including one opened the normal way; do this before you update Claude |
+| `doctor` | Check every launcher, and list account folders whose launcher was removed |
+| `doctor --fix` | Also repair launchers: point them at Claude.app after it moved, make them runnable, redraw lost icons |
 | `peers` | Show the Claude Code sessions running in every account |
 | `remove NAME` | Delete the launcher and keep the account's sign-in and chats |
 | `remove NAME --delete-data` | Also delete that account's folder (asks you to type the name; never touches your first account) |
@@ -271,7 +275,8 @@ exec open -n -a "/Applications/Claude.app" --args --user-data-dir="$HOME/Library
 ## Good to know
 
 - **Dock icons.** Once a window is open, the Dock shows the normal Claude icon and name for it, whatever icon the launcher has, because Claude.app decides that and this tool never modifies Claude.app. Start accounts from the launchers, which have their own icons.
-- **Updating Claude.** Quit Claude in every account before you update it; see [Updating Claude Desktop](#updating-claude-desktop).
+- **Updating Claude.** Quit Claude in every account before you update it (`claude-multi-desktop quit --all`); see [Updating Claude Desktop](#updating-claude-desktop).
+- **If a launcher stops opening.** A launcher remembers where Claude.app was when you made it. If you move Claude.app or reinstall it somewhere else, `list` shows the launcher as `broken` and `claude-multi-desktop doctor --fix` points it at the new place. Sign-ins and chats are not touched.
 - **Shared means shared.** Memory or `CLAUDE.md` text written in one account is visible to the others. If work data must stay inside the work account, use a tool that isolates Claude Code too (see below).
 - **macOS only.** Windows and Linux users, see the tools below.
 
@@ -345,7 +350,7 @@ You are responsible for how you use your accounts. Anthropic may restrict or clo
 bash tests/test.sh
 ```
 
-The tests run in a temporary home folder with a stand-in Claude.app. They create, list and remove launchers, check the icon and the plist, and map fake sessions to accounts, without ever opening Claude. CI runs them on macOS together with ShellCheck.
+The tests run in a temporary home folder with a stand-in Claude.app. They create, list, repair and remove launchers, check the icon and the plist, quit stand-in Claude processes and map fake sessions to accounts, without ever opening Claude. CI runs them on macOS together with ShellCheck.
 
 ## Changelog
 
