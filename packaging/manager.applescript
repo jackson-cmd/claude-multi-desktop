@@ -4,7 +4,7 @@ property appTitle : "Claude Multi Desktop"
 
 on run
 	set tool to "/bin/bash " & quoted form of POSIX path of (path to resource "claude-multi-desktop")
-	set actions to {"Add an account", "Add a launcher for the account I already use", "Open an account", "Change a launcher's icon", "Rename a launcher", "Remove a launcher", "Show Claude Code sessions in every account"}
+	set actions to {"Add an account", "Add a launcher for the account I already use", "Open an account", "Quit an account", "Quit every account (before updating Claude)", "Check and repair launchers", "Change a launcher's icon", "Rename a launcher", "Remove a launcher", "Show Claude Code sessions in every account"}
 	repeat
 		set picked to choose from list actions with title appTitle with prompt "Run several Claude Desktop accounts side by side. What would you like to do?" default items {"Add an account"} OK button name "Continue" cancel button name "Quit"
 		if picked is false then exit repeat
@@ -17,6 +17,16 @@ on run
 			else if action is "Open an account" then
 				set n to my pickLauncher(tool, "Open which account?")
 				do shell script tool & " open " & quoted form of n
+			else if action is "Quit an account" then
+				set n to my pickLauncher(tool, "Quit Claude in which account?")
+				set out to do shell script tool & " quit " & quoted form of n & " 2>&1 || true"
+				display dialog out with title appTitle buttons {"OK"} default button "OK"
+			else if action is "Quit every account (before updating Claude)" then
+				set out to do shell script tool & " quit --all 2>&1 || true"
+				display dialog out & return & return & "To update Claude, open it the normal way (or from your launcher for the account you already use) and choose Claude > Check for Updates. Then open your other accounts again." with title appTitle buttons {"OK"} default button "OK"
+			else if action is "Check and repair launchers" then
+				set out to do shell script tool & " doctor --fix 2>&1 || true"
+				display dialog out with title appTitle buttons {"OK"} default button "OK"
 			else if action is "Change a launcher's icon" then
 				set n to my pickLauncher(tool, "Change the icon of which launcher?")
 				set out to do shell script tool & " icon " & quoted form of n & my pickIcon(n)

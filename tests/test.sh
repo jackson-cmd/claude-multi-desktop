@@ -6,11 +6,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TOOL="$ROOT/claude-multi-desktop"
 T="$(mktemp -d)"
-trap 'rm -rf "$T"' EXIT
+stop_stand_ins() { local p; [ -f "$T/pids" ] || return 0; while read -r p; do kill -9 "$p" 2>/dev/null || true; done < "$T/pids"; }
+trap 'stop_stand_ins; rm -rf "$T"' EXIT
 
 export HOME="$T/home" CMD_APPS_DIR="$T/apps" CLAUDE_APP="$T/Claude.app" CLAUDE_CONFIG_DIR="$T/home/.claude"
 mkdir -p "$HOME/Library/Application Support" "$CLAUDE_APP/Contents/MacOS"
-printf '#!/bin/sh\n' > "$CLAUDE_APP/Contents/MacOS/Claude"; chmod +x "$CLAUDE_APP/Contents/MacOS/Claude"
+# A stand-in for Claude: it runs until asked to quit, or ignores that when STUBBORN is set. Nothing here opens it,
+# except start_claude below.
+cat > "$CLAUDE_APP/Contents/MacOS/Claude" <<'EOF'
+#!/bin/sh
+if [ -n "${STUBBORN:-}" ]; then trap '' TERM; else trap 'exit 0' TERM; fi
+while :; do sleep 0.1; done
+EOF
+chmod +x "$CLAUDE_APP/Contents/MacOS/Claude"
+start_claude() { # [ARGS...]: run the stand-in in the background, detached so the system reaps it when it ends
+  ( "$CLAUDE_APP/Contents/MacOS/Claude" "$@" >/dev/null 2>&1 & echo $! >> "$T/pids" )
+  sleep 0.3
+}
 
 pass=0; fail=0
 ok()   { pass=$((pass + 1)); printf '  ok    %s\n' "$1"; }
@@ -93,6 +105,55 @@ refuse "refuse adding a launcher for a folder a renamed launcher uses" "$TOOL" a
 out="$("$TOOL" list --names)"
 check "list --names prints bare names" grep -qx "studio" <<< "$out"
 "$TOOL" remove studio >/dev/null; "$TOOL" remove Picture >/dev/null
+
+# doctor: a launcher whose Claude.app has moved, one that cannot run, a lost icon, a folder whose launcher was removed
+check "doctor passes when nothing is wrong" "$TOOL" doctor
+MOVED="$CMD_APPS_DIR/Claude Moved.app"
+mkdir -p "$T/Old/Claude.app/Contents/MacOS"; cp "$CLAUDE_APP/Contents/MacOS/Claude" "$T/Old/Claude.app/Contents/MacOS/"
+CLAUDE_APP="$T/Old/Claude.app" "$TOOL" add Moved >/dev/null
+rm -rf "$T/Old"
+refuse "doctor finds a launcher whose Claude.app is gone" "$TOOL" doctor
+check "list marks that launcher broken" bash -c '"$1" list | grep -Eq "^Claude Moved +broken"' _ "$TOOL"
+chmod -x "$MOVED/Contents/MacOS/launcher"
+rm "$MOVED/Contents/Resources/icon.icns"
+mkdir -p "$HOME/Library/Application Support/Claude-Old"
+if out="$("$TOOL" doctor --fix 2>&1)"; then ok "doctor --fix repairs them"; else bad "doctor --fix repairs them"; fi
+check "repaired launcher opens the Claude.app found now" grep -qF "open -n -a \"$CLAUDE_APP\"" "$MOVED/Contents/MacOS/launcher"
+check "repaired launcher keeps its account folder" grep -qF 'user-data-dir="$HOME/Library/Application Support/Claude-Moved"' "$MOVED/Contents/MacOS/launcher"
+check "repaired launcher can run" test -x "$MOVED/Contents/MacOS/launcher"
+check "lost icon is drawn again" test -s "$MOVED/Contents/Resources/icon.icns"
+check "doctor names a folder whose launcher was removed" grep -qF 'claude-multi-desktop add "Old"' <<< "$out"
+check "doctor passes after --fix" "$TOOL" doctor
+cp -R "$MOVED" "$CMD_APPS_DIR/Claude Moved copy.app"   # what duplicating the launcher in Finder makes
+refuse "doctor finds two launchers for one account" "$TOOL" doctor
+rm -rf "$CMD_APPS_DIR/Claude Moved copy.app"; "$TOOL" remove Moved >/dev/null
+refuse "refuse an unknown doctor option" "$TOOL" doctor --frobnicate
+
+# quit: the stand-in plays Claude in one account, then in several, then one that will not quit
+WORKDIR="$HOME/Library/Application Support/Claude-Work"
+start_claude --user-data-dir="$WORKDIR"
+check "list shows an open account as open" bash -c '"$1" list | grep -Eq "^Claude Work +open"' _ "$TOOL"
+check "quit Work" "$TOOL" quit Work
+check "Work is closed" bash -c '! "$1" list | grep -Eq "^Claude Work +open"' _ "$TOOL"
+check "quit says when an account is not open" bash -c '"$1" quit Work | grep -q "^Not open Claude Work"' _ "$TOOL"
+start_claude --user-data-dir="$WORKDIR"
+start_claude --user-data-dir="$HOME/Library/Application Support/Claude-Client A"
+start_claude   # the default account, opened the normal way with no flag
+check "the default account opened the normal way shows as open" bash -c '"$1" list | grep -Eq "^Claude Main +open"' _ "$TOOL"
+check "quit --all" "$TOOL" quit --all
+check "every account is closed" bash -c '! "$1" list | grep -q " open "' _ "$TOOL"
+check "quit --all with nothing open says so" bash -c '"$1" quit --all | grep -q "No Claude window was open"' _ "$TOOL"
+refuse "refuse quit with no name" "$TOOL" quit
+refuse "refuse quit for a missing launcher" "$TOOL" quit Nobody
+STUBBORN=1 start_claude --user-data-dir="$WORKDIR"
+if out="$(CMD_QUIT_WAIT=1 "$TOOL" quit Work 2>&1)"; then bad "quit reports a window that does not close"
+elif grep -q "^Running  Claude Work: still open after 1s" <<< "$out"; then ok "quit reports a window that does not close"
+else bad "quit reports a window that does not close"; fi
+mkdir -p "$WORKDIR"
+refuse "never delete the folder of an open account" "$TOOL" remove Work --delete-data --yes
+check "folder of the open account survives" test -d "$WORKDIR"
+stop_stand_ins
+"$TOOL" add Work >/dev/null
 
 # remove
 mkdir -p "$HOME/Library/Application Support/Claude-Work"
