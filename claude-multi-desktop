@@ -124,7 +124,9 @@ is_open() { [ -n "$(account_pids "$1")" ]; } # true when Claude runs with this a
 
 still_running() { # "PID PID ..." -> prints those that have not ended (a finished process waiting to be reaped counts as ended)
   [ -n "${1// /}" ] || return 0
-  ps -o pid=,stat= -p "$(printf '%s' "$1" | tr -s ' ' ',' | sed 's/^,//; s/,$//')" 2>/dev/null | awk '$2 !~ /^Z/ { print $1 }'
+  # ps exits 1 when none of the PIDs exists any more; that is the answer "none", not an error.
+  { ps -o pid=,stat= -p "$(printf '%s' "$1" | tr -s ' ' ',' | sed 's/^,//; s/,$//')" 2>/dev/null || true; } |
+    awk '$2 !~ /^Z/ { print $1 }'
 }
 
 # Draw the launcher icon. STYLE is letter, claude or image; SRC is Claude.app (claude) or the picture (image).

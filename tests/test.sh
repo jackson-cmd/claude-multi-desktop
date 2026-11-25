@@ -146,7 +146,9 @@ check "quit --all with nothing open says so" bash -c '"$1" quit --all | grep -q 
 refuse "refuse quit with no name" "$TOOL" quit
 refuse "refuse quit for a missing launcher" "$TOOL" quit Nobody
 STUBBORN=1 start_claude --user-data-dir="$WORKDIR"
-refuse "quit reports a window that does not close" env CMD_QUIT_WAIT=1 "$TOOL" quit Work
+if out="$(CMD_QUIT_WAIT=1 "$TOOL" quit Work 2>&1)"; then bad "quit reports a window that does not close"
+elif grep -q "^Running  Claude Work: still open after 1s" <<< "$out"; then ok "quit reports a window that does not close"
+else bad "quit reports a window that does not close"; fi
 mkdir -p "$WORKDIR"
 refuse "never delete the folder of an open account" "$TOOL" remove Work --delete-data --yes
 check "folder of the open account survives" test -d "$WORKDIR"
