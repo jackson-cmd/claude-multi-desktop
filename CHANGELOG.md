@@ -6,6 +6,7 @@
 - **`doctor` and `doctor --fix`.** Checks every launcher: that the Claude.app it opens is still there, that it can run, that no two launchers open the same account (as happens when a launcher is duplicated in Finder), and that it has an icon. It also lists account folders whose launcher was removed, with the `add` command that brings them back. `--fix` points launchers at the Claude.app found now (after Claude.app was moved or reinstalled elsewhere), makes them runnable and redraws lost icons; it never touches sign-ins or chats.
 - **`list` shows broken launchers.** A launcher whose Claude.app is gone shows as `broken`, with a hint to run `doctor --fix`.
 - **Claude Multi Desktop app.** New choices: quit an account, quit every account before updating Claude, and check and repair launchers.
+- **GitHub Packages.** Each release's npm package is also published to GitHub Packages as `@jackson-cmd/claude-multi-desktop`, so it shows under Packages on the repository page.
 - An account counts as open only when Claude's main process runs with its folder; Claude opened the normal way counts for the default account only when it is the Claude.app this tool finds.
 
 ## 0.1.3 (2026-11-15)

@@ -114,6 +114,8 @@ npx claude-multi-desktop add Work     # run it without installing
 npm install -g claude-multi-desktop   # or install the command
 ```
 
+The same package is also on [GitHub Packages](https://github.com/jackson-cmd/claude-multi-desktop/pkgs/npm/claude-multi-desktop) as `@jackson-cmd/claude-multi-desktop`. Installing from there needs a GitHub token, so the npm lines above are simpler.
+
 ### PyPI
 
 ```bash

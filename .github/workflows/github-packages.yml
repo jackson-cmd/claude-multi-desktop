@@ -1,0 +1,58 @@
+name: GitHub Packages
+
+# Publishes the npm package of a published release to GitHub Packages as @jackson-cmd/claude-multi-desktop, so it is
+# listed under Packages on the repository page. It takes the .tgz attached to the release (the file the release
+# workflow built and smoke-tested), gives it the owner's scope, which GitHub Packages requires for npm, and publishes it
+# with the workflow's GITHUB_TOKEN. package.json's "repository" links the package to this repository, so it takes the
+# repository's visibility. release.yml calls this after each release; run it by hand with the tag of a published
+# release to publish that one, e.g. v0.1.2. A version that is already there is skipped.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of a published release, e.g. v0.1.2"
+        required: true
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ inputs.tag }}
+      NAME: "@${{ github.repository_owner }}/claude-multi-desktop"
+      REGISTRY: https://npm.pkg.github.com
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@${{ github.repository_owner }}"
+      - name: Take the npm package attached to the release and give it the owner's scope
+        run: |
+          v=${TAG#v}
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p "claude-multi-desktop-$v.tgz" -D dist
+          tar -xzf "dist/claude-multi-desktop-$v.tgz" -C dist
+          cd dist/package
+          npm pkg set "name=$NAME"
+          [ "$(npm pkg get version | tr -d '"')" = "$v" ] || { echo "the package in $TAG is not version $v"; exit 1; }
+          [ -x claude-multi-desktop ] || { echo "the package in $TAG has no runnable claude-multi-desktop"; exit 1; }
+      - name: Publish (skipped when this version is already on GitHub Packages)
+        working-directory: dist/package
+        run: |
+          v=${TAG#v}
+          if npm view "$NAME@$v" version --registry "$REGISTRY" >/dev/null 2>&1; then echo "$v is already on GitHub Packages"; exit 0; fi
+          npm publish --registry "$REGISTRY"

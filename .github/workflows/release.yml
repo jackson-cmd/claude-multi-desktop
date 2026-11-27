@@ -3,8 +3,9 @@ name: release
 # When the tests pass on main and the script carries a version that has no tag yet, this drafts a GitHub release with
 # the version's CHANGELOG.md section, builds and smoke-tests the .pkg, .dmg, wheel, source archive and npm package,
 # attaches them, and publishes the release (which creates the tag vX.Y.Z). Then PyPI (trusted publishing, once the
-# repository variable PYPI_PUBLISH is "true") and npm (trusted publishing, once NPM_PUBLISH is "true"). Run it by hand
-# with the tag of a published release to upload that release to PyPI and npm again, e.g. after setting them up.
+# repository variable PYPI_PUBLISH is "true"), npm (trusted publishing, once NPM_PUBLISH is "true") and GitHub Packages
+# (github-packages.yml, as @jackson-cmd/claude-multi-desktop). Run it by hand with the tag of a published release to
+# upload that release to PyPI, npm and GitHub Packages again, e.g. after setting them up.
 # The Homebrew formula in jackson-cmd/homebrew-tap is bumped by hand afterwards (new tarball sha256).
 
 on:
@@ -162,3 +163,13 @@ jobs:
           v=${{ needs.draft.outputs.tag }}; v=${v#v}
           if npm view "claude-multi-desktop@$v" version >/dev/null 2>&1; then echo "$v is already on npm"; exit 0; fi
           npm publish "dist/claude-multi-desktop-$v.tgz" --access public
+
+  github-packages:
+    needs: [draft, build, publish]
+    if: always() && needs.build.result == 'success' && needs.publish.result != 'failure'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/github-packages.yml
+    with:
+      tag: ${{ needs.draft.outputs.tag }}
