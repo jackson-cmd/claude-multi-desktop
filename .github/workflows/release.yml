@@ -162,7 +162,7 @@ jobs:
           npm install -g npm@latest
           v=${{ needs.draft.outputs.tag }}; v=${v#v}
           if npm view "claude-multi-desktop@$v" version >/dev/null 2>&1; then echo "$v is already on npm"; exit 0; fi
-          npm publish "dist/claude-multi-desktop-$v.tgz" --access public
+          npm publish "./dist/claude-multi-desktop-$v.tgz" --access public
 
   github-packages:
     needs: [draft, build, publish]
